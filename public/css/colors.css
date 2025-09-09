@@ -1,0 +1,15 @@
+:root {
+  /* Color Palette */
+  --soft-blush: #FBE4E3;
+  --crimson-silk: #D72638;
+  --ruby-red: #9B111E;
+  --deep-bordeaux: #3F0D12;
+  
+  /* Semantic color variables */
+  --primary: var(--ruby-red);
+  --secondary: var(--crimson-silk);
+  --accent: var(--deep-bordeaux);
+  --background: var(--soft-blush);
+  --text-light: var(--soft-blush);
+  --text-dark: var(--deep-bordeaux);
+} 

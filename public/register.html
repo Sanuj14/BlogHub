@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register - BlogHub</title>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    /* Fix button text visibility */
+    .nav-link.btn.btn-outline-light {
+      color: white !important;
+    }
+    .nav-link.btn.btn-light {
+      color: var(--ruby-red) !important; 
+    }
+    .nav-link.btn.btn-success {
+      color: white !important;
+    }
+    
+    /* Register form styling */
+    .register-icon {
+      color: var(--ruby-red);
+    }
+    
+    .register-card {
+      border-radius: 1rem;
+      border-top: 4px solid var(--ruby-red);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+    
+    .register-card .input-group-text {
+      background-color: var(--soft-blush);
+      color: var(--deep-bordeaux);
+      border-color: var(--soft-blush);
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container">
+      <a class="navbar-brand" href="/">BlogHub</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item logged-out">
+            <a class="nav-link" href="/users/login">Login</a>
+          </li>
+          <li class="nav-item logged-out">
+            <a class="nav-link" href="/users/register">Register</a>
+          </li>
+          <li class="nav-item logged-in" style="display: none;">
+            <a class="nav-link" href="/dashboard.html">Dashboard</a>
+          </li>
+          <li class="nav-item logged-in" style="display: none;">
+            <a class="nav-link" href="#" onclick="logout(); return false;">Logout</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Alert messages container -->
+  <div class="alert-container container mt-3"></div>
+
+  <!-- Main Content -->
+  <main class="container mt-4">
+    <div class="row justify-content-center">
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="text-center">Register</h3>
+          </div>
+          <div class="card-body">
+            <form id="registerForm">
+              <div class="mb-3">
+                <label for="name" class="form-label">Name</label>
+                <input type="text" class="form-control" id="name" name="name" required>
+              </div>
+              <div class="mb-3">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" class="form-control" id="username" name="username" required 
+                       pattern="^[a-zA-Z0-9_]{3,}$" 
+                       title="Username must be at least 3 characters long and can only contain letters, numbers, and underscores">
+                <div class="form-text">Username must be at least 3 characters long and can only contain letters, numbers, and underscores.</div>
+              </div>
+              <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" name="email" required>
+              </div>
+              <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" name="password" required>
+              </div>
+              <div class="mb-3">
+                <label for="confirmPassword" class="form-label">Confirm Password</label>
+                <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+              </div>
+              <div class="d-grid">
+                <button type="submit" class="btn btn-primary">Register</button>
+              </div>
+            </form>
+            <div class="text-center mt-3">
+              <p>Already have an account? <a href="/users/login">Login here</a></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer mt-auto py-3 bg-light">
+    <div class="container text-center">
+      <span class="text-muted">© 2025 BlogHub. All rights reserved.</span>
+    </div>
+  </footer>
+
+  <!-- Bootstrap JS & Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <!-- Custom JS -->
+  <script src="/js/main.js"></script>
+  <script src="/js/auth.js"></script>
+  <script>
+    // Initialize registration form
+    document.addEventListener('DOMContentLoaded', function() {
+      const registerForm = document.getElementById('registerForm');
+      if (registerForm) {
+        registerForm.addEventListener('submit', handleRegistration);
+      }
+    });
+  </script>
+</body>
+</html> 

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blogs - BlogHub</title>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    /* Fix button text visibility */
+    .nav-link.btn.btn-outline-light {
+      color: white !important;
+    }
+    .nav-link.btn.btn-light {
+      color: #0d6efd !important; 
+    }
+    .nav-link.btn.btn-success {
+      color: white !important;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
+    <div class="container">
+      <a class="navbar-brand" href="/">
+        <i class="fas fa-blog me-2"></i>BlogHub
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <li class="nav-item">
+            <a class="nav-link" href="/">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" href="/blogs.html">Blogs</a>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown"
+              aria-expanded="false">
+              Categories
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+              <li><a class="dropdown-item" href="/blogs.html?category=Technology">Technology</a></li>
+              <li><a class="dropdown-item" href="/blogs.html?category=Lifestyle">Lifestyle</a></li>
+              <li><a class="dropdown-item" href="/blogs.html?category=Travel">Travel</a></li>
+              <li><a class="dropdown-item" href="/blogs.html?category=Food">Food</a></li>
+              <li><a class="dropdown-item" href="/blogs.html?category=Health">Health</a></li>
+              <li><a class="dropdown-item" href="/blogs.html?category=Business">Business</a></li>
+              <li><a class="dropdown-item" href="/blogs.html?category=Other">Other</a></li>
+            </ul>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/about.html">About</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/contact.html">Contact</a>
+          </li>
+        </ul>
+        
+        <form class="d-flex me-2" action="/blogs.html" method="GET">
+          <div class="input-group">
+            <input class="form-control" type="search" name="search" placeholder="Search blogs..." aria-label="Search">
+            <button class="btn btn-light" type="submit"><i class="fas fa-search"></i></button>
+          </div>
+        </form>
+
+        <ul class="navbar-nav">
+          <li class="nav-item logged-out">
+            <a class="nav-link btn btn-outline-light btn-sm px-3 me-2 text-white" href="/login.html">Login</a>
+          </li>
+          <li class="nav-item logged-out">
+            <a class="nav-link btn btn-light btn-sm px-3 text-primary" href="/register.html">Register</a>
+          </li>
+          <li class="nav-item logged-in" style="display: none;">
+            <a class="nav-link btn btn-success btn-sm text-white px-3 me-2" href="/create-blog.html">
+              <i class="fas fa-plus me-1"></i> New Blog
+            </a>
+          </li>
+          <li class="nav-item dropdown logged-in" style="display: none;">
+            <a class="nav-link dropdown-toggle user-dropdown" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown"
+              aria-expanded="false">
+              <img src="/img/default-avatar.jpg" alt="User" class="rounded-circle me-1" width="24" height="24">
+              <span class="username">User</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+              <li><a class="dropdown-item" href="/dashboard.html"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a></li>
+              <li><a class="dropdown-item" href="/profile.html"><i class="fas fa-user me-2"></i>My Profile</a></li>
+              <li><a class="dropdown-item" href="/edit-profile.html"><i class="fas fa-edit me-2"></i>Edit Profile</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item logout-link" href="#"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Alert messages container -->
+  <div class="alert-container container mt-3"></div>
+
+  <!-- Main Content -->
+  <main class="container mt-4">
+    <div class="row mb-4">
+      <div class="col-md-8">
+        <h1 class="fw-bold">All Blogs</h1>
+        <p class="text-muted">Discover interesting stories and insights from our community.</p>
+      </div>
+      <div class="col-md-4">
+        <div class="d-flex justify-content-md-end">
+          <div class="dropdown">
+            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="fas fa-sort me-1"></i> Sort by
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="sortDropdown">
+              <li><a class="dropdown-item active" href="#">Most Recent</a></li>
+              <li><a class="dropdown-item" href="#">Most Popular</a></li>
+              <li><a class="dropdown-item" href="#">Most Commented</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4" id="blogContainer">
+      <!-- Blog cards will be loaded dynamically via JavaScript -->
+    </div>
+
+      <!-- Add pagination -->
+      <div class="col-12 mt-4">
+        <nav aria-label="Blog pagination">
+          <ul class="pagination justify-content-center">
+            <li class="page-item disabled">
+              <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+            </li>
+            <li class="page-item active"><a class="page-link" href="/blogs.html?page=1">1</a></li>
+            <li class="page-item"><a class="page-link" href="/blogs.html?page=2">2</a></li>
+            <li class="page-item"><a class="page-link" href="/blogs.html?page=3">3</a></li>
+            <li class="page-item">
+              <a class="page-link" href="/blogs.html?page=2">Next</a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer mt-5 py-4 bg-dark text-white">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+          <p class="mb-0">&copy; 2025 BlogHub. All rights reserved.</p>
+        </div>
+        <div class="col-md-6 text-center text-md-end">
+          <ul class="list-inline mb-0">
+            <li class="list-inline-item"><a href="#" class="text-white text-decoration-none">Privacy Policy</a></li>
+            <li class="list-inline-item">·</li>
+            <li class="list-inline-item"><a href="#" class="text-white text-decoration-none">Terms of Use</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap JS & Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <!-- Custom JS -->
+  <script src="/js/main.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/blog-list.js"></script>
+</body>
+</html> 

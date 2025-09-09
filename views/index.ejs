@@ -1,0 +1,359 @@
+<!-- Hero Section -->
+<section class="hero-section py-5 bg-primary text-white">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-6 mb-4 mb-lg-0">
+        <h1 class="display-4 fw-bold mb-3">Share Your Stories With The World</h1>
+        <p class="lead mb-4">Join our community of bloggers and readers. Create, share, and discover amazing content.</p>
+        <div class="d-flex flex-wrap gap-2">
+          <a href="/blogs" class="btn btn-light btn-lg px-4 me-md-2">Explore Blogs</a>
+          <a href="/users/register" class="btn btn-outline-light btn-lg px-4">Join Today</a>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <img src="/img/hero-image.svg" alt="BlogHub" class="img-fluid rounded shadow-lg">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2 class="fw-bold">Why Choose BlogHub?</h2>
+      <p class="text-muted">Our platform offers everything you need to create and share your content</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm">
+          <div class="card-body text-center p-4">
+            <div class="feature-icon bg-primary bg-gradient text-white mb-3 mx-auto rounded-circle d-flex align-items-center justify-content-center" style="width:60px;height:60px">
+              <i class="fas fa-edit fa-lg"></i>
+            </div>
+            <h4>Easy Content Creation</h4>
+            <p class="text-muted">Our intuitive editor makes it simple to write, format, and publish your blogs.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm">
+          <div class="card-body text-center p-4">
+            <div class="feature-icon bg-primary bg-gradient text-white mb-3 mx-auto rounded-circle d-flex align-items-center justify-content-center" style="width:60px;height:60px">
+              <i class="fas fa-users fa-lg"></i>
+            </div>
+            <h4>Community Engagement</h4>
+            <p class="text-muted">Connect with readers through comments, likes, and sharing features.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm">
+          <div class="card-body text-center p-4">
+            <div class="feature-icon bg-primary bg-gradient text-white mb-3 mx-auto rounded-circle d-flex align-items-center justify-content-center" style="width:60px;height:60px">
+              <i class="fas fa-chart-line fa-lg"></i>
+            </div>
+            <h4>Analytics & Insights</h4>
+            <p class="text-muted">Track your blog's performance with detailed statistics and metrics.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Featured Blogs Section -->
+<section class="py-5 bg-light">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2 class="fw-bold">Featured Blogs</h2>
+      <a href="/blogs" class="btn btn-primary">View All</a>
+    </div>
+
+    <% if(featuredBlogs && featuredBlogs.length > 0) { %>
+      <div class="row g-4">
+        <% featuredBlogs.forEach(blog => { %>
+          <div class="col-md-6 col-lg-3">
+            <div class="card h-100 border-0 shadow-sm hover-scale transition-all">
+              <img src="/img/uploads/<%= blog.image %>" class="card-img-top" alt="<%= blog.title %>" style="height: 180px; object-fit: cover;">
+              <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                  <span class="badge bg-primary px-3 py-2 rounded-pill"><%= blog.category %></span>
+                  <small class="text-muted"><i class="far fa-clock me-1"></i> <%= new Date(blog.date).toLocaleDateString() %></small>
+                </div>
+                <h5 class="card-title"><%= blog.title %></h5>
+                <p class="card-text text-muted"><%= blog.content.substring(0, 80) %>...</p>
+              </div>
+              <div class="card-footer bg-transparent border-0 d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                  <img src="/img/uploads/<%= blog.author.avatar %>" class="rounded-circle me-2" width="30" height="30" alt="<%= blog.author.name %>">
+                  <small><%= blog.author.name %></small>
+                </div>
+                <div>
+                  <small class="text-muted me-2"><i class="far fa-eye"></i> <%= blog.views %></small>
+                  <small class="text-muted"><i class="far fa-heart"></i> <%= blog.likesCount %></small>
+                </div>
+              </div>
+              <a href="/blogs/<%= blog._id %>" class="stretched-link"></a>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    <% } else { %>
+      <div class="alert alert-info">No featured blogs available at the moment.</div>
+    <% } %>
+  </div>
+</section>
+
+<!-- Latest Blogs Section -->
+<section class="py-5">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2 class="fw-bold">Latest Blogs</h2>
+      <a href="/blogs" class="btn btn-primary">View All</a>
+    </div>
+
+    <% if(latestBlogs && latestBlogs.length > 0) { %>
+      <div class="row g-4">
+        <% latestBlogs.forEach((blog, index) => { %>
+          <% if(index === 0) { %>
+            <div class="col-12">
+              <div class="card mb-3 border-0 shadow-sm hover-scale transition-all">
+                <div class="row g-0">
+                  <div class="col-md-5">
+                    <img src="/img/uploads/<%= blog.image %>" class="img-fluid h-100 w-100" alt="<%= blog.title %>" style="object-fit: cover;">
+                  </div>
+                  <div class="col-md-7">
+                    <div class="card-body d-flex flex-column justify-content-between h-100">
+                      <div>
+                        <div class="d-flex justify-content-between mb-3">
+                          <span class="badge bg-primary px-3 py-2 rounded-pill"><%= blog.category %></span>
+                          <small class="text-muted"><i class="far fa-clock me-1"></i> <%= new Date(blog.date).toLocaleDateString() %></small>
+                        </div>
+                        <h3 class="card-title mb-3"><%= blog.title %></h3>
+                        <p class="card-text"><%= blog.content.substring(0, 200) %>...</p>
+                      </div>
+                      <div>
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                          <div class="d-flex align-items-center">
+                            <img src="/img/uploads/<%= blog.author.avatar %>" class="rounded-circle me-2" width="40" height="40" alt="<%= blog.author.name %>">
+                            <span><%= blog.author.name %></span>
+                          </div>
+                          <div>
+                            <small class="text-muted me-3"><i class="far fa-eye"></i> <%= blog.views %></small>
+                            <small class="text-muted me-3"><i class="far fa-heart"></i> <%= blog.likesCount %></small>
+                            <small class="text-muted"><i class="far fa-comment"></i> <%= blog.commentsCount %></small>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <a href="/blogs/<%= blog._id %>" class="stretched-link"></a>
+              </div>
+            </div>
+          <% } else { %>
+            <div class="col-md-6 col-lg-4">
+              <div class="card h-100 border-0 shadow-sm hover-scale transition-all">
+                <img src="/img/uploads/<%= blog.image %>" class="card-img-top" alt="<%= blog.title %>" style="height: 200px; object-fit: cover;">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between mb-2">
+                    <span class="badge bg-primary px-3 py-2 rounded-pill"><%= blog.category %></span>
+                    <small class="text-muted"><i class="far fa-clock me-1"></i> <%= new Date(blog.date).toLocaleDateString() %></small>
+                  </div>
+                  <h5 class="card-title"><%= blog.title %></h5>
+                  <p class="card-text text-muted"><%= blog.content.substring(0, 100) %>...</p>
+                </div>
+                <div class="card-footer bg-transparent border-0 d-flex justify-content-between align-items-center">
+                  <div class="d-flex align-items-center">
+                    <img src="/img/uploads/<%= blog.author.avatar %>" class="rounded-circle me-2" width="30" height="30" alt="<%= blog.author.name %>">
+                    <small><%= blog.author.name %></small>
+                  </div>
+                  <div>
+                    <small class="text-muted me-2"><i class="far fa-eye"></i> <%= blog.views %></small>
+                    <small class="text-muted me-2"><i class="far fa-heart"></i> <%= blog.likesCount %></small>
+                    <small class="text-muted"><i class="far fa-comment"></i> <%= blog.commentsCount %></small>
+                  </div>
+                </div>
+                <a href="/blogs/<%= blog._id %>" class="stretched-link"></a>
+              </div>
+            </div>
+          <% } %>
+        <% }) %>
+      </div>
+    <% } else { %>
+      <div class="alert alert-info">No blogs available at the moment.</div>
+    <% } %>
+  </div>
+</section>
+
+<!-- Popular Categories Section -->
+<section class="py-5 bg-light">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2 class="fw-bold">Explore Categories</h2>
+      <p class="text-muted">Discover content that interests you the most</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-4 col-lg-2">
+        <a href="/blogs?category=Technology" class="text-decoration-none">
+          <div class="card text-center border-0 shadow-sm h-100 hover-scale transition-all">
+            <div class="card-body p-4">
+              <div class="icon-circle bg-primary bg-gradient text-white rounded-circle mb-3 mx-auto d-flex align-items-center justify-content-center" style="width:50px;height:50px">
+                <i class="fas fa-laptop-code"></i>
+              </div>
+              <h5 class="card-title text-dark">Technology</h5>
+            </div>
+          </div>
+        </a>
+      </div>
+      <div class="col-md-4 col-lg-2">
+        <a href="/blogs?category=Lifestyle" class="text-decoration-none">
+          <div class="card text-center border-0 shadow-sm h-100 hover-scale transition-all">
+            <div class="card-body p-4">
+              <div class="icon-circle bg-success bg-gradient text-white rounded-circle mb-3 mx-auto d-flex align-items-center justify-content-center" style="width:50px;height:50px">
+                <i class="fas fa-smile-beam"></i>
+              </div>
+              <h5 class="card-title text-dark">Lifestyle</h5>
+            </div>
+          </div>
+        </a>
+      </div>
+      <div class="col-md-4 col-lg-2">
+        <a href="/blogs?category=Travel" class="text-decoration-none">
+          <div class="card text-center border-0 shadow-sm h-100 hover-scale transition-all">
+            <div class="card-body p-4">
+              <div class="icon-circle bg-info bg-gradient text-white rounded-circle mb-3 mx-auto d-flex align-items-center justify-content-center" style="width:50px;height:50px">
+                <i class="fas fa-plane"></i>
+              </div>
+              <h5 class="card-title text-dark">Travel</h5>
+            </div>
+          </div>
+        </a>
+      </div>
+      <div class="col-md-4 col-lg-2">
+        <a href="/blogs?category=Food" class="text-decoration-none">
+          <div class="card text-center border-0 shadow-sm h-100 hover-scale transition-all">
+            <div class="card-body p-4">
+              <div class="icon-circle bg-warning bg-gradient text-white rounded-circle mb-3 mx-auto d-flex align-items-center justify-content-center" style="width:50px;height:50px">
+                <i class="fas fa-utensils"></i>
+              </div>
+              <h5 class="card-title text-dark">Food</h5>
+            </div>
+          </div>
+        </a>
+      </div>
+      <div class="col-md-4 col-lg-2">
+        <a href="/blogs?category=Health" class="text-decoration-none">
+          <div class="card text-center border-0 shadow-sm h-100 hover-scale transition-all">
+            <div class="card-body p-4">
+              <div class="icon-circle bg-danger bg-gradient text-white rounded-circle mb-3 mx-auto d-flex align-items-center justify-content-center" style="width:50px;height:50px">
+                <i class="fas fa-heartbeat"></i>
+              </div>
+              <h5 class="card-title text-dark">Health</h5>
+            </div>
+          </div>
+        </a>
+      </div>
+      <div class="col-md-4 col-lg-2">
+        <a href="/blogs?category=Business" class="text-decoration-none">
+          <div class="card text-center border-0 shadow-sm h-100 hover-scale transition-all">
+            <div class="card-body p-4">
+              <div class="icon-circle bg-secondary bg-gradient text-white rounded-circle mb-3 mx-auto d-flex align-items-center justify-content-center" style="width:50px;height:50px">
+                <i class="fas fa-briefcase"></i>
+              </div>
+              <h5 class="card-title text-dark">Business</h5>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Contact Section -->
+<section class="py-5" id="contact">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-6 mb-4 mb-lg-0">
+        <h2 class="fw-bold mb-4">Get in Touch</h2>
+        <p class="mb-4">Have questions or suggestions? Feel free to contact us. We'd love to hear from you!</p>
+        
+        <div class="mb-4">
+          <div class="d-flex align-items-center mb-3">
+            <div class="icon-circle bg-primary text-white rounded-circle me-3 d-flex align-items-center justify-content-center" style="width:40px;height:40px">
+              <i class="fas fa-map-marker-alt"></i>
+            </div>
+            <div>
+              <h5 class="mb-0">Address</h5>
+              <p class="mb-0 text-muted">123 Blog Street, Digital City</p>
+            </div>
+          </div>
+          
+          <div class="d-flex align-items-center mb-3">
+            <div class="icon-circle bg-primary text-white rounded-circle me-3 d-flex align-items-center justify-content-center" style="width:40px;height:40px">
+              <i class="fas fa-envelope"></i>
+            </div>
+            <div>
+              <h5 class="mb-0">Email</h5>
+              <p class="mb-0 text-muted">contact@bloghub.com</p>
+            </div>
+          </div>
+          
+          <div class="d-flex align-items-center">
+            <div class="icon-circle bg-primary text-white rounded-circle me-3 d-flex align-items-center justify-content-center" style="width:40px;height:40px">
+              <i class="fas fa-phone"></i>
+            </div>
+            <div>
+              <h5 class="mb-0">Phone</h5>
+              <p class="mb-0 text-muted">+1 (555) 123-4567</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-lg-6">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body p-4">
+            <h3 class="fw-bold mb-4">Send a Message</h3>
+            <form action="/contact" method="POST">
+              <div class="mb-3">
+                <label for="name" class="form-label">Your Name</label>
+                <input type="text" class="form-control" id="name" name="name" required>
+              </div>
+              <div class="mb-3">
+                <label for="email" class="form-label">Your Email</label>
+                <input type="email" class="form-control" id="email" name="email" required>
+              </div>
+              <div class="mb-3">
+                <label for="subject" class="form-label">Subject</label>
+                <input type="text" class="form-control" id="subject" name="subject" required>
+              </div>
+              <div class="mb-3">
+                <label for="message" class="form-label">Message</label>
+                <textarea class="form-control" id="message" name="message" rows="4" required></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary btn-lg w-100">Send Message</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Call to Action -->
+<section class="py-5 bg-primary text-white text-center">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <h2 class="fw-bold mb-3">Ready to Start Blogging?</h2>
+        <p class="lead mb-4">Join our community today and start sharing your stories with the world.</p>
+        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+          <a href="/users/register" class="btn btn-light btn-lg px-4 gap-3">Create Account</a>
+          <a href="/blogs" class="btn btn-outline-light btn-lg px-4">Explore Blogs</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section> 

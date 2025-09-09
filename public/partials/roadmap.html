@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Project Roadmap Generator</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f9ff;
+      padding: 2rem;
+      color: #333;
+    }
+
+    h1 {
+      text-align: center;
+      color: #0b5ed7;
+    }
+
+    textarea {
+      width: 100%;
+      height: 150px;
+      padding: 1rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      resize: none;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.05);
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.7rem 1.5rem;
+      background: #0b5ed7;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    .roadmap {
+      margin-top: 2rem;
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .step {
+      margin-bottom: 1rem;
+      padding: 0.8rem;
+      border-left: 4px solid #0b5ed7;
+      background: #f0f6ff;
+      border-radius: 6px;
+    }
+
+    .step strong {
+      color: #0b5ed7;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>AI Project Roadmap Generator</h1>
+
+  <textarea id="inputText" placeholder="Paste your project idea or code description here..."></textarea>
+  <br/>
+  <button onclick="generateRoadmap()">Generate Roadmap</button>
+
+  <div class="roadmap" id="roadmapOutput">
+    <!-- Generated roadmap steps appear here -->
+  </div>
+
+  <script>
+    function generateRoadmap() {
+      const input = document.getElementById('inputText').value.trim();
+      const outputDiv = document.getElementById('roadmapOutput');
+      outputDiv.innerHTML = '';
+
+      if (!input) {
+        outputDiv.innerHTML = "<p>Please enter some project description to generate a roadmap.</p>";
+        return;
+      }
+
+      const phases = [
+        { title: "Phase 1: Define Problem", desc: "Understand the project's goal, output type (binary or multiclass), and target users." },
+        { title: "Phase 2: Dataset Collection", desc: "Collect clinical/tabular data and any image datasets (e.g. EyePACS)." },
+        { title: "Phase 3: Preprocessing", desc: "Clean tabular data, normalize images, check for missing values." },
+        { title: "Phase 4: Model Building", desc: "Train separate models for tabular and image data (MLP + CNN)." },
+        { title: "Phase 5: Fusion Model", desc: "Combine both models’ outputs using a hybrid layer for final prediction." },
+        { title: "Phase 6: Severity Estimation", desc: "Add logic to estimate if the condition is mild/moderate/critical." },
+        { title: "Phase 7: UI & Deployment", desc: "Build a front-end (Streamlit/Flask) to allow users to interact and upload data." },
+        { title: "Phase 8: Documentation", desc: "Write project report, diagrams, and prepare demo/presentation." }
+      ];
+
+      phases.forEach((phase, index) => {
+        const stepDiv = document.createElement('div');
+        stepDiv.classList.add('step');
+        stepDiv.innerHTML = `<strong>${phase.title}</strong><br/>${phase.desc}`;
+        outputDiv.appendChild(stepDiv);
+      });
+    }
+  </script>
+
+</body>
+</html>

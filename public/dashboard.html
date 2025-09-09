@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - BlogHub</title>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    /* Fix button text visibility */
+    .nav-link.btn.btn-outline-light {
+      color: white !important;
+    }
+    .nav-link.btn.btn-light {
+      color: #0d6efd !important; 
+    }
+    .nav-link.btn.btn-success {
+      color: white !important;
+    }
+    .stats-card {
+      transition: all 0.3s;
+    }
+    .stats-card:hover {
+      transform: translateY(-5px);
+    }
+  </style>
+</head>
+<body>
+  <!-- Alert Container -->
+  <div class="alert-container position-fixed top-0 end-0 p-3" style="z-index: 1050;"></div>
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+      <a class="navbar-brand" href="/">BlogHub</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="/">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/blogs.html">Blogs</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/about.html">About</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/contact.html">Contact</a>
+          </li>
+        </ul>
+        <ul class="navbar-nav">
+          <!-- Show these items when user is logged in -->
+          <li class="nav-item dropdown logged-in">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <span class="username">User</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+              <li><a class="dropdown-item" href="/dashboard.html">Dashboard</a></li>
+              <li><a class="dropdown-item" href="/users/profile">Profile</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item logout-link" href="#">Logout</a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container mt-4">
+    <div class="row">
+      <div class="col-md-12">
+        <h1 class="mb-4">Dashboard</h1>
+        
+        <div class="card mb-4">
+          <div class="card-body">
+            <h5 class="card-title"><span id="welcomeMessage">User</span>!</h5>
+            <p class="card-text">Manage your blog posts and profile here.</p>
+            <a href="/create-blog.html" class="btn btn-primary">Create New Blog</a>
+            <a href="/users/profile" class="btn btn-outline-primary">Edit Profile</a>
+          </div>
+        </div>
+
+        <h2 class="mb-3">Your Blog Posts</h2>
+        
+        <div id="blogsContainer">
+          <div class="text-center">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-dark text-light py-4 mt-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-4">
+          <h5>BlogHub</h5>
+          <p class="text-muted">A modern platform for sharing your thoughts and stories with the world.</p>
+        </div>
+        <div class="col-md-4">
+          <h5>Quick Links</h5>
+          <ul class="list-unstyled">
+            <li><a href="/" class="text-muted">Home</a></li>
+            <li><a href="/blogs.html" class="text-muted">Blogs</a></li>
+            <li><a href="/about.html" class="text-muted">About</a></li>
+            <li><a href="/contact.html" class="text-muted">Contact</a></li>
+          </ul>
+        </div>
+        <div class="col-md-4">
+          <h5>Connect With Us</h5>
+          <div class="social-links">
+            <a href="#" class="text-muted me-2"><i class="fab fa-facebook"></i></a>
+            <a href="#" class="text-muted me-2"><i class="fab fa-twitter"></i></a>
+            <a href="#" class="text-muted me-2"><i class="fab fa-instagram"></i></a>
+            <a href="#" class="text-muted"><i class="fab fa-linkedin"></i></a>
+          </div>
+        </div>
+      </div>
+      <hr class="my-4">
+      <div class="row">
+        <div class="col-md-6">
+          <p class="mb-0 text-muted">&copy; 2025 BlogHub. All rights reserved.</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+          <a href="#" class="text-muted me-3">Privacy Policy</a>
+          <a href="#" class="text-muted">Terms of Service</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/main.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/dashboard.js"></script>
+</body>
+</html> 

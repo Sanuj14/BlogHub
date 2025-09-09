@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create New Blog - BlogHub</title>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- TinyMCE -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.2/tinymce.min.js"></script>
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <!-- Add debugging tools at the top -->
+  <div id="debugTools" class="container mt-3 mb-3 p-3 bg-light border rounded" style="display:none;">
+    <h4>Debug Tools</h4>
+    <div class="row">
+      <div class="col-md-6">
+        <div class="mb-3">
+          <button id="testAuth" class="btn btn-info btn-sm">Test Authentication</button>
+          <button id="refreshToken" class="btn btn-warning btn-sm ms-2">Refresh Token</button>
+        </div>
+        <div class="mb-3">
+          <button id="testCreateBlog" class="btn btn-success btn-sm">Test Create Blog</button>
+        </div>
+        <div id="debugOutput" class="alert alert-secondary" style="max-height: 200px; overflow-y: auto; display:none;"></div>
+      </div>
+      <div class="col-md-6">
+        <div class="form-check mb-2">
+          <input class="form-check-input" type="checkbox" id="showDebugTools">
+          <label class="form-check-label" for="showDebugTools">
+            Show Debug Tools
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
+    <div class="container">
+      <a class="navbar-brand" href="/">
+        <i class="fas fa-blog me-2"></i>BlogHub
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <li class="nav-item">
+            <a class="nav-link" href="/">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/blogs">Blogs</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/dashboard">Dashboard</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-lg-10">
+        <div class="card shadow-sm">
+          <div class="card-body p-4">
+            <h1 class="card-title text-center mb-4">Create New Blog Post</h1>
+            
+            <!-- Alert Container -->
+            <div id="alertContainer"></div>
+            
+            <!-- Blog Form -->
+            <form id="blogForm" class="needs-validation" novalidate autocomplete="off">
+              <!-- Title -->
+              <div class="mb-3">
+                <label for="title" class="form-label">Title</label>
+                <input type="text" class="form-control" id="title" name="title" required minlength="5" maxlength="120">
+                <div class="invalid-feedback">
+                  Please provide a title for your blog post.
+                </div>
+              </div>
+
+              <!-- Category -->
+              <div class="mb-3">
+                <label for="category" class="form-label">Category</label>
+                <select class="form-select" id="category" name="category" required>
+                  <option value="">Select a category</option>
+                  <option value="Technology">Technology</option>
+                  <option value="Lifestyle">Lifestyle</option>
+                  <option value="Travel">Travel</option>
+                  <option value="Food">Food</option>
+                  <option value="Health">Health</option>
+                  <option value="Business">Business</option>
+                  <option value="Literature">Literature</option>
+                  <option value="Culture">Culture</option>
+                  <option value="Other">Other</option>
+                </select>
+                <div class="invalid-feedback">
+                  Please select a category.
+                </div>
+              </div>
+
+              <!-- Tags -->
+              <div class="mb-3">
+                <label for="tags" class="form-label">Tags</label>
+                <input type="text" class="form-control" id="tags" name="tags" placeholder="Enter tags separated by commas">
+                <div class="form-text">
+                  Add relevant tags to help readers find your content (e.g., programming, web development, nodejs)
+                </div>
+              </div>
+
+              <!-- Cover Image -->
+              <div class="mb-3">
+                <label for="coverImage" class="form-label">Cover Image</label>
+                <input type="file" class="form-control" id="coverImage" name="coverImage" accept="image/*">
+                <div class="form-text">
+                  Upload a cover image for your blog post (optional)
+                </div>
+                <img id="imagePreview" class="mt-2 rounded" style="max-width: 100%; display: none;">
+              </div>
+
+              <!-- Content -->
+              <div class="mb-3">
+                <label for="content" class="form-label">Content</label>
+                <textarea class="form-control" id="content" name="content" rows="12" required minlength="20"></textarea>
+                <div class="invalid-feedback">
+                  Please provide content for your blog post.
+                </div>
+              </div>
+
+              <!-- Status -->
+              <input type="hidden" id="status" name="status" value="published">
+
+              <!-- Submit Buttons -->
+              <div class="d-flex gap-2 justify-content-end">
+                <button type="button" id="saveDraft" class="btn btn-secondary">
+                  Save as Draft
+                </button>
+                <button type="submit" class="btn btn-primary">
+                  Publish Blog
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer py-4 bg-dark text-white mt-5">
+    <div class="container text-center">
+      <p class="mb-0">&copy; 2025 BlogHub. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- Bootstrap JS Bundle with Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <!-- Custom JS -->
+  <script src="/js/blog.js"></script>
+  <script src="/js/auth.js"></script>
+
+  <!-- Add debug script at the end -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Check authentication status on page load
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        // Redirect to login if not authenticated
+        window.location.href = '/login.html?redirect=create-blog.html';
+        return;
+      }
+
+      // Debug tools toggle
+      const debugTools = document.getElementById('debugTools');
+      const showDebugTools = document.getElementById('showDebugTools');
+      
+      // Check if user has developer mode enabled
+      const isDeveloper = localStorage.getItem('developerMode') === 'true';
+      showDebugTools.checked = isDeveloper;
+      debugTools.style.display = isDeveloper ? 'block' : 'none';
+      
+      showDebugTools.addEventListener('change', function() {
+        debugTools.style.display = this.checked ? 'block' : 'none';
+        localStorage.setItem('developerMode', this.checked);
+      });
+      
+      // Debug output function
+      const debugOutput = document.getElementById('debugOutput');
+      function logDebug(message, type = 'info') {
+        const timestamp = new Date().toLocaleTimeString();
+        debugOutput.style.display = 'block';
+        debugOutput.innerHTML += `<div class="text-${type}">[${timestamp}] ${message}</div>`;
+        debugOutput.scrollTop = debugOutput.scrollHeight;
+      }
+      
+      // Test Authentication
+      document.getElementById('testAuth').addEventListener('click', async function() {
+        try {
+          const token = localStorage.getItem('authToken');
+          if (!token) {
+            logDebug('No auth token found. Please login first.', 'danger');
+            return;
+          }
+          
+          logDebug('Testing authentication...');
+          const response = await fetch('/api/blogs/test-auth', {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          
+          const data = await response.json();
+          if (response.ok) {
+            logDebug(`Auth successful: ${data.user.name} (${data.user.id})`, 'success');
+          } else {
+            logDebug(`Auth failed: ${data.message}`, 'danger');
+          }
+        } catch (error) {
+          logDebug(`Error: ${error.message}`, 'danger');
+        }
+      });
+      
+      // Refresh Token
+      document.getElementById('refreshToken').addEventListener('click', async function() {
+        try {
+          logDebug('Refreshing token...');
+          const token = localStorage.getItem('authToken');
+          if (!token) {
+            logDebug('No auth token found. Please login first.', 'danger');
+            return;
+          }
+          
+          const response = await fetch('/api/auth/verify-token', {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          
+          const data = await response.json();
+          if (response.ok && data.success) {
+            const newToken = data.token.replace('Bearer ', '');
+            localStorage.setItem('authToken', newToken);
+            logDebug('Token refreshed successfully', 'success');
+          } else {
+            logDebug(`Token refresh failed: ${data.message}`, 'danger');
+          }
+        } catch (error) {
+          logDebug(`Error: ${error.message}`, 'danger');
+        }
+      });
+      
+      // Test Create Blog
+      document.getElementById('testCreateBlog').addEventListener('click', async function() {
+        try {
+          const token = localStorage.getItem('authToken');
+          if (!token) {
+            logDebug('No auth token found. Please login first.', 'danger');
+            return;
+          }
+          
+          logDebug('Testing blog creation...');
+          const response = await fetch('/api/blogs/test-create', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              title: 'Test Blog ' + new Date().toLocaleTimeString(),
+              content: 'This is a test blog post created at ' + new Date().toLocaleString()
+            })
+          });
+          
+          const data = await response.json();
+          if (response.ok && data.success) {
+            logDebug(`Test blog created: ${data.blog.title}`, 'success');
+          } else {
+            logDebug(`Test blog creation failed: ${data.message}`, 'danger');
+          }
+        } catch (error) {
+          logDebug(`Error: ${error.message}`, 'danger');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
+</body>
+</html> 

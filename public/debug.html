@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BlogHub Debug Tools</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+  <div class="container mt-5">
+    <h1>BlogHub Debug Tools</h1>
+    <div class="card mb-4">
+      <div class="card-header bg-primary text-white">
+        <h3 class="card-title">Authentication Tools</h3>
+      </div>
+      <div class="card-body">
+        <div class="mb-3">
+          <button id="testAuth" class="btn btn-info">Test Authentication</button>
+          <button id="refreshToken" class="btn btn-warning">Refresh Token</button>
+          <button id="clearToken" class="btn btn-danger">Clear Token</button>
+        </div>
+        <div class="mb-3">
+          <label for="tokenDisplay" class="form-label">Current Token</label>
+          <textarea id="tokenDisplay" class="form-control" rows="3" readonly></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mb-4">
+      <div class="card-header bg-success text-white">
+        <h3 class="card-title">Blog Creation Test</h3>
+      </div>
+      <div class="card-body">
+        <div class="mb-3">
+          <button id="testCreateBlog" class="btn btn-success">Test Create Simple Blog</button>
+        </div>
+        <div class="mb-3">
+          <button id="testFormDataBlog" class="btn btn-primary">Test Create Blog with FormData</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header bg-secondary text-white">
+        <h3 class="card-title">Debug Output</h3>
+      </div>
+      <div class="card-body">
+        <div id="debugOutput" class="alert alert-secondary" style="max-height: 400px; overflow-y: auto;"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Debug output function
+      const debugOutput = document.getElementById('debugOutput');
+      const tokenDisplay = document.getElementById('tokenDisplay');
+      
+      function updateTokenDisplay() {
+        const token = localStorage.getItem('authToken') || '';
+        tokenDisplay.value = token;
+      }
+      
+      updateTokenDisplay();
+      
+      function logDebug(message, type = 'info') {
+        const timestamp = new Date().toLocaleTimeString();
+        debugOutput.innerHTML += `<div class="text-${type}">[${timestamp}] ${message}</div>`;
+        debugOutput.scrollTop = debugOutput.scrollHeight;
+      }
+      
+      // Test Authentication
+      document.getElementById('testAuth').addEventListener('click', async function() {
+        try {
+          const token = localStorage.getItem('authToken');
+          if (!token) {
+            logDebug('No auth token found. Please login first.', 'danger');
+            return;
+          }
+          
+          logDebug('Testing authentication...');
+          const response = await fetch('/api/blogs/test-auth', {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          
+          const data = await response.json();
+          if (response.ok) {
+            logDebug(`Auth successful: ${data.user.name} (${data.user.id})`, 'success');
+          } else {
+            logDebug(`Auth failed: ${data.message}`, 'danger');
+          }
+        } catch (error) {
+          logDebug(`Error: ${error.message}`, 'danger');
+        }
+      });
+      
+      // Refresh Token
+      document.getElementById('refreshToken').addEventListener('click', async function() {
+        try {
+          logDebug('Refreshing token...');
+          const token = localStorage.getItem('authToken');
+          if (!token) {
+            logDebug('No auth token found. Please login first.', 'danger');
+            return;
+          }
+          
+          const response = await fetch('/api/auth/verify-token', {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          
+          const data = await response.json();
+          if (response.ok && data.success) {
+            const newToken = data.token.replace('Bearer ', '');
+            localStorage.setItem('authToken', newToken);
+            updateTokenDisplay();
+            logDebug('Token refreshed successfully', 'success');
+          } else {
+            logDebug(`Token refresh failed: ${data.message}`, 'danger');
+          }
+        } catch (error) {
+          logDebug(`Error: ${error.message}`, 'danger');
+        }
+      });
+      
+      // Clear Token
+      document.getElementById('clearToken').addEventListener('click', function() {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userData');
+        updateTokenDisplay();
+        logDebug('Auth token cleared', 'warning');
+      });
+      
+      // Test Create Blog
+      document.getElementById('testCreateBlog').addEventListener('click', async function() {
+        try {
+          const token = localStorage.getItem('authToken');
+          if (!token) {
+            logDebug('No auth token found. Please login first.', 'danger');
+            return;
+          }
+          
+          logDebug('Testing blog creation...');
+          const response = await fetch('/api/blogs/test-create', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              title: 'Test Blog ' + new Date().toLocaleString(),
+              content: 'This is a test blog post created for debugging purposes.'
+            })
+          });
+          
+          const responseText = await response.text();
+          logDebug(`Raw response: ${responseText}`);
+          
+          try {
+            const data = JSON.parse(responseText);
+            if (response.ok) {
+              logDebug(`Blog created successfully: ${data.blog.title}`, 'success');
+            } else {
+              logDebug(`Blog creation failed: ${data.message}`, 'danger');
+            }
+          } catch (e) {
+            logDebug(`Error parsing JSON: ${e.message}`, 'danger');
+          }
+        } catch (error) {
+          logDebug(`Error: ${error.message}`, 'danger');
+        }
+      });
+      
+      // Test Create Blog with FormData
+      document.getElementById('testFormDataBlog').addEventListener('click', async function() {
+        try {
+          const token = localStorage.getItem('authToken');
+          if (!token) {
+            logDebug('No auth token found. Please login first.', 'danger');
+            return;
+          }
+          
+          logDebug('Testing blog creation with FormData...');
+          const formData = new FormData();
+          formData.append('title', 'FormData Test ' + new Date().toLocaleString());
+          formData.append('category', 'Test');
+          formData.append('content', 'This is a test blog post created with FormData.');
+          formData.append('status', 'draft');
+          
+          const response = await fetch('/api/blogs', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`
+            },
+            body: formData
+          });
+          
+          const responseText = await response.text();
+          logDebug(`Raw response: ${responseText}`);
+          
+          try {
+            const data = JSON.parse(responseText);
+            if (response.ok) {
+              logDebug(`Blog created successfully: ${data.blog.title}`, 'success');
+            } else {
+              logDebug(`Blog creation failed: ${data.message}`, 'danger');
+            }
+          } catch (e) {
+            logDebug(`Error parsing JSON: ${e.message}`, 'danger');
+          }
+        } catch (error) {
+          logDebug(`Error: ${error.message}`, 'danger');
+        }
+      });
+    });
+  </script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 
