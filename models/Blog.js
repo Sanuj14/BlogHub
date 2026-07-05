@@ -1,79 +1,55 @@
 const mongoose = require('mongoose');
 
-const BlogSchema = new mongoose.Schema({
-  title: {
-    type: String,
-    required: true
+const CATEGORIES = [
+  'Technology',
+  'Lifestyle',
+  'Travel',
+  'Food',
+  'Health',
+  'Business',
+  'Literature',
+  'Culture',
+  'Other'
+];
+
+const CommentSchema = new mongoose.Schema(
+  {
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    name: { type: String, required: true },
+    content: { type: String, required: true, trim: true, maxlength: 1000 }
   },
-  content: {
-    type: String,
-    required: true
+  { timestamps: true }
+);
+
+const BlogSchema = new mongoose.Schema(
+  {
+    title: { type: String, required: true, trim: true, maxlength: 160 },
+    content: { type: String, required: true },
+    excerpt: { type: String, default: '', maxlength: 300 },
+    slug: { type: String, unique: true, index: true },
+    coverImage: { type: String, default: '' }, // a URL – keeps the app serverless friendly
+    author: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    category: { type: String, required: true, enum: CATEGORIES, default: 'Other' },
+    tags: [{ type: String, trim: true }],
+    status: { type: String, enum: ['draft', 'published'], default: 'published' },
+    views: { type: Number, default: 0 },
+    likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    comments: [CommentSchema]
   },
-  slug: {
-    type: String,
-    unique: true
-  },
-  thumbnail: {
-    type: String,
-    default: '/img/placeholder.jpg'
-  },
-  author: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  category: {
-    type: String,
-    required: true,
-    enum: ['Technology', 'Lifestyle', 'Travel', 'Food', 'Health', 'Business', 'Literature', 'Culture', 'Other']
-  },
-  tags: [{
-    type: String
-  }],
-  status: {
-    type: String,
-    enum: ['draft', 'published'],
-    default: 'draft'
-  },
-  views: {
-    type: Number,
-    default: 0
-  },
-  comments: [{
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
-    },
-    content: String,
-    date: {
-      type: Date,
-      default: Date.now
-    }
-  }],
-  likes: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
-  }]
-}, {
-  timestamps: true
+  { timestamps: true }
+);
+
+// Expose likeCount / commentCount when serialising to JSON.
+BlogSchema.set('toJSON', { virtuals: true });
+BlogSchema.set('toObject', { virtuals: true });
+BlogSchema.virtual('likeCount').get(function () {
+  return Array.isArray(this.likes) ? this.likes.length : 0;
+});
+BlogSchema.virtual('commentCount').get(function () {
+  return Array.isArray(this.comments) ? this.comments.length : 0;
 });
 
-// Remove the pre-save middleware that was causing issues
-// BlogSchema.pre('save', function(next) {
-//   // Always generate a slug if it doesn't exist
-//   if (!this.slug) {
-//     this.slug = this.title
-//       .toLowerCase()
-//       .replace(/[^a-zA-Z0-9]/g, '-')
-//       .replace(/-+/g, '-')
-//       .replace(/^-|-$/g, '');
-//     
-//     // Add timestamp to ensure uniqueness
-//     this.slug = `${this.slug}-${Date.now()}`;
-//   }
-//   next();
-// });
+BlogSchema.statics.CATEGORIES = CATEGORIES;
 
-const Blog = mongoose.model('Blog', BlogSchema);
-
-module.exports = Blog; 
+module.exports = mongoose.models.Blog || mongoose.model('Blog', BlogSchema);
+module.exports.CATEGORIES = CATEGORIES;

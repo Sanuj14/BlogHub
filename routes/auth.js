@@ -1,303 +1,100 @@
 const express = require('express');
 const router = express.Router();
-const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const bcrypt = require('bcryptjs');
+const { requireAuth, signToken } = require('../middleware/auth');
 
-// Simple login endpoint that doesn't use bcrypt
-router.post('/login-simple', async (req, res) => {
-  const { email, password } = req.body;
-  
-  console.log('Simple login attempt:', email);
-  
-  // Simple validation
-  if (!email || !password) {
-    return res.status(400).json({ message: 'Please provide email and password' });
-  }
+const emailRe = /^\S+@\S+\.\S+$/;
 
-  try {
-    // Find user by email and explicitly select the password field
-    const user = await User.findOne({ email }).select('+password');
-    
-    // Check if user exists
-    if (!user) {
-      console.log('User not found:', email);
-      return res.status(400).json({ message: 'Invalid credentials' });
-    }
-    
-    // Check password
-    const isMatch = await bcrypt.compare(password, user.password);
-    
-    if (!isMatch) {
-      console.log('Invalid password for user:', email);
-      return res.status(400).json({ message: 'Invalid credentials' });
-    }
-    
-    // User matched, create JWT
-    const payload = {
-      id: user.id,
-      name: user.name,
-      username: user.username,
-      email: user.email,
-      role: user.role
-    };
-
-    // Sign token
-    const token = jwt.sign(
-      payload,
-      process.env.JWT_SECRET || 'bloghub_jwt_secret',
-      { expiresIn: '1d' }
-    );
-
-    console.log('Login successful for user:', email);
-    res.json({
-      success: true,
-      token: 'Bearer ' + token,
-      user: payload
-    });
-  } catch (err) {
-    console.error('Login error:', err);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// Regular login endpoint with password verification
-router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
-  
-  console.log('Login attempt:', email);
-  
-  // Simple validation
-  if (!email || !password) {
-    return res.status(400).json({ message: 'Please provide email and password' });
-  }
-
-  try {
-    // Find user by email
-    const user = await User.findOne({ email });
-    
-    // Check if user exists
-    if (!user) {
-      console.log('User not found:', email);
-      return res.status(400).json({ message: 'Invalid credentials' });
-    }
-    
-    // Check password
-    const isMatch = await bcrypt.compare(password, user.password);
-    
-    if (!isMatch) {
-      console.log('Invalid password for user:', email);
-      return res.status(400).json({ message: 'Invalid credentials' });
-    }
-
-    // User matched, create JWT
-    const payload = {
-      id: user.id,
-      name: user.name,
-      username: user.username,
-      email: user.email,
-      role: user.role
-    };
-
-    // Sign token
-    const token = jwt.sign(
-      payload,
-      process.env.JWT_SECRET || 'bloghub_jwt_secret',
-      { expiresIn: '1d' }
-    );
-
-    console.log('Login successful for user:', email);
-    res.json({
-      success: true,
-      token: 'Bearer ' + token,
-      user: payload
-    });
-  } catch (err) {
-    console.error('Login error:', err);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// Registration endpoint
+// POST /api/auth/register
 router.post('/register', async (req, res) => {
-  const { name, username, email, password } = req.body;
-  
-  console.log('Registration attempt:', { name, username, email });
-  
-  // Simple validation
-  if (!name || !username || !email || !password) {
-    console.log('Missing required fields:', { name, username, email, password });
-    return res.status(400).json({ message: 'Please provide all required fields' });
-  }
-
   try {
-    // Check if user exists
-    let user = await User.findOne({ $or: [{ email }, { username }] });
-    if (user) {
-      console.log('User already exists:', { email, username });
-      return res.status(400).json({ message: 'Email or username already exists' });
+    let { name, username, email, password } = req.body;
+
+    if (!name || !username || !email || !password) {
+      return res.status(400).json({ success: false, message: 'Please provide all required fields' });
+    }
+    username = String(username).trim().toLowerCase();
+    email = String(email).trim().toLowerCase();
+
+    if (!/^[a-zA-Z0-9_]{3,}$/.test(username)) {
+      return res
+        .status(400)
+        .json({ success: false, message: 'Username must be 3+ characters (letters, numbers, underscores)' });
+    }
+    if (!emailRe.test(email)) {
+      return res.status(400).json({ success: false, message: 'Please provide a valid email' });
+    }
+    if (String(password).length < 6) {
+      return res.status(400).json({ success: false, message: 'Password must be at least 6 characters' });
     }
 
-    // Create new user - let the pre-save middleware handle password hashing
-    user = new User({
-      name,
-      username,
-      email,
-      password
-    });
-    
-    // Save user - this will trigger the pre-save middleware to hash the password
-    await user.save();
-    console.log('User created successfully:', { id: user.id, username: user.username });
+    const existing = await User.findOne({ $or: [{ email }, { username }] });
+    if (existing) {
+      const field = existing.email === email ? 'Email' : 'Username';
+      return res.status(409).json({ success: false, message: `${field} is already registered` });
+    }
 
-    // Create JWT payload
-    const payload = {
-      id: user.id,
-      name: user.name,
-      username: user.username,
-      email: user.email,
-      role: user.role
-    };
+    const user = await User.create({ name: name.trim(), username, email, password });
+    const token = signToken(user);
 
-    // Sign token
-    const token = jwt.sign(
-      payload,
-      process.env.JWT_SECRET || 'bloghub_jwt_secret',
-      { expiresIn: '1d' }
-    );
-
-    console.log('Registration successful, sending response');
     res.status(201).json({
       success: true,
       token: 'Bearer ' + token,
-      user: payload
+      user: { id: user._id, name: user.name, username: user.username, email: user.email, role: user.role }
     });
   } catch (err) {
-    console.error('Registration error:', err);
-    res.status(500).json({ message: 'Server error', error: err.message });
+    if (err && err.code === 11000) {
+      return res.status(409).json({ success: false, message: 'Email or username already exists' });
+    }
+    if (err && err.name === 'ValidationError') {
+      const message = Object.values(err.errors)[0].message;
+      return res.status(400).json({ success: false, message });
+    }
+    console.error('Register error:', err);
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 
-// Forgot password endpoint
-router.post('/forgot-password', async (req, res) => {
-  const { email } = req.body;
-  
-  console.log('Forgot password request:', email);
-  
-  // Simple validation
-  if (!email) {
-    return res.status(400).json({ message: 'Please provide your email address' });
-  }
-
+// POST /api/auth/login
+router.post('/login', async (req, res) => {
   try {
-    // Check if user exists
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).json({ message: 'User not found' });
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ success: false, message: 'Please provide email and password' });
     }
 
-    // In a real app, you'd generate a token and send email
-    // For demo purposes, just return success
-    res.json({
-      success: true,
-      message: 'Password reset email sent'
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// Reset password endpoint
-router.post('/reset-password', async (req, res) => {
-  const { token, password } = req.body;
-  
-  console.log('Reset password attempt with token:', token);
-  
-  // Simple validation
-  if (!token || !password) {
-    return res.status(400).json({ message: 'Missing required fields' });
-  }
-
-  try {
-    // In a real app, you'd verify the token and find the user
-    // For demo purposes just return success
-    res.json({
-      success: true,
-      message: 'Password reset successfully'
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// Debug endpoint to verify token
-router.get('/verify-token', async (req, res) => {
-  const authHeader = req.headers.authorization;
-  
-  if (!authHeader) {
-    return res.status(401).json({ 
-      success: false,
-      message: 'No token provided' 
-    });
-  }
-  
-  try {
-    // Extract the token
-    const token = authHeader.startsWith('Bearer ') 
-      ? authHeader.substring(7) 
-      : authHeader;
-    
-    // Verify the token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'bloghub_jwt_secret');
-    
-    // Find the user to ensure they still exist
-    const user = await User.findById(decoded.id).select('-password');
-    
+    const user = await User.findOne({ email: String(email).trim().toLowerCase() }).select('+password');
     if (!user) {
-      return res.status(404).json({ 
-        success: false,
-        message: 'User not found' 
-      });
+      return res.status(400).json({ success: false, message: 'Invalid credentials' });
     }
-    
-    // Generate a new token for the user
-    const newToken = jwt.sign(
-      {
-        id: user.id,
-        name: user.name,
-        username: user.username,
-        email: user.email,
-        role: user.role
-      },
-      process.env.JWT_SECRET || 'bloghub_jwt_secret',
-      { expiresIn: '1d' }
-    );
-    
-    // Return success with user info and new token
+
+    const match = await user.comparePassword(password);
+    if (!match) {
+      return res.status(400).json({ success: false, message: 'Invalid credentials' });
+    }
+
+    const token = signToken(user);
     res.json({
       success: true,
-      message: 'Token is valid',
-      token: 'Bearer ' + newToken,
-      user: {
-        id: user.id,
-        name: user.name,
-        username: user.username,
-        email: user.email,
-        role: user.role
-      }
+      token: 'Bearer ' + token,
+      user: { id: user._id, name: user.name, username: user.username, email: user.email, role: user.role }
     });
   } catch (err) {
-    console.error('Token verification error:', err.message);
-    
-    // Return detailed error for debugging
-    return res.status(401).json({ 
-      success: false,
-      message: 'Invalid token', 
-      error: err.message
-    });
+    console.error('Login error:', err);
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 
-module.exports = router; 
+// GET /api/auth/me  – verify token / fetch current user
+router.get('/me', requireAuth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password');
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    res.json({ success: true, user });
+  } catch (err) {
+    console.error('Me error:', err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+module.exports = router;

@@ -1,286 +1,156 @@
-document.addEventListener('DOMContentLoaded', function() {
-  // Get blog ID from URL
-  const urlParams = new URLSearchParams(window.location.search);
-  const blogId = urlParams.get('id');
+/* Blog detail — render article, likes, comments, author actions */
+(function () {
+  const { api, isAuthed, getUser } = window.BlogHub;
+  const U = window.UI;
 
-  // Load blog data from localStorage or sample data
-  const blog = loadBlogData(blogId);
-  
-  if (blog) {
-    // Update blog content
-    document.getElementById('blogTitle').textContent = blog.title;
-    document.getElementById('blogImage').src = blog.image;
-    document.getElementById('blogContent').innerHTML = blog.content;
-    document.getElementById('authorName').textContent = blog.author;
-    document.getElementById('publishDate').textContent = blog.date;
-    document.getElementById('authorImage').src = blog.authorImage;
-    document.getElementById('likeCount').textContent = blog.likes || 0;
+  const root = document.getElementById('article-root');
+  const id = new URLSearchParams(location.search).get('id');
 
-    // Update sidebar
-    document.getElementById('sidebarAuthorName').textContent = blog.author;
-    document.getElementById('sidebarAuthorImage').src = blog.authorImage;
-    document.getElementById('authorBio').textContent = blog.authorBio || 'Blog Author';
-    document.getElementById('authorDescription').textContent = blog.authorDescription || 'Passionate writer sharing insights and experiences.';
-
-    // Load related posts
-    loadRelatedPosts(blog.category);
-  } else {
-    // If blog not found, show a message
-    document.getElementById('blogTitle').textContent = 'Blog Not Found';
-    document.getElementById('blogContent').innerHTML = '<p class="text-muted">The requested blog could not be found.</p>';
+  if (!id) {
+    root.innerHTML = notFound('No story specified.');
+    return;
   }
 
-  // Load comments
-  loadComments(blogId);
-  checkLikeStatus(blogId);
+  let liked = false;
+  let likeCount = 0;
 
-  // Event Listeners
-  document.getElementById('likeButton').addEventListener('click', () => handleLike(blogId));
-  document.getElementById('commentForm').addEventListener('submit', (e) => handleCommentSubmit(e, blogId));
-});
-
-// Load blog data from localStorage or sample data
-function loadBlogData(blogId) {
-  // Try to get blog from localStorage first
-  const savedBlogs = JSON.parse(localStorage.getItem('blogs') || '[]');
-  const blog = savedBlogs.find(b => b.id === blogId);
-
-  if (blog) {
-    return blog;
+  function notFound(msg) {
+    return `<div class="empty"><div class="ic"><i class="fa-regular fa-compass"></i></div>
+      <p>${U.escape(msg)}</p><p style="margin-top:16px"><a class="btn btn-ghost btn-sm" href="/blogs.html">Back to stories</a></p></div>`;
   }
 
-  // If not found in localStorage, use sample data
-  const sampleBlogs = {
-    '1': {
-      id: '1',
-      title: "AI in Healthcare: Revolutionizing Patient Care",
-      content: `
-        <p>Artificial Intelligence is transforming healthcare in unprecedented ways. From diagnostic tools to personalized treatment plans, AI is making healthcare more efficient and effective.</p>
-        <p>Key areas where AI is making an impact:</p>
-        <ul>
-          <li>Medical Imaging Analysis</li>
-          <li>Drug Discovery</li>
-          <li>Predictive Analytics</li>
-          <li>Personalized Medicine</li>
-        </ul>
-        <p>The future of healthcare is here, and AI is leading the way.</p>
-      `,
-      author: "Dr. Sarah Johnson",
-      authorImage: "https://randomuser.me/api/portraits/women/1.jpg",
-      date: "Apr 5, 2023",
-      image: "https://images.unsplash.com/photo-1576091160550-2173dba999ef",
-      category: "Technology",
-      likes: 0
-    },
-    '2': {
-      id: '2',
-      title: "Exploring Northeast India: A Traveler's Paradise",
-      content: `
-        <p>Northeast India is a hidden gem waiting to be discovered. With its rich cultural heritage and breathtaking landscapes, it offers a unique travel experience.</p>
-        <p>Must-visit places:</p>
-        <ul>
-          <li>Kaziranga National Park</li>
-          <li>Living Root Bridges of Meghalaya</li>
-          <li>Tawang Monastery</li>
-          <li>Majuli Island</li>
-        </ul>
-        <p>Experience the magic of Northeast India!</p>
-      `,
-      author: "Rahul Sharma",
-      authorImage: "https://randomuser.me/api/portraits/men/2.jpg",
-      date: "Apr 4, 2023",
-      image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f",
-      category: "Travel",
-      likes: 0
+  function commentHTML(c) {
+    const name = (c.user && c.user.name) || c.name || 'User';
+    return `
+      <div class="comment">
+        <span class="avatar">${U.escape(U.initials(name))}</span>
+        <div class="c-body">
+          <div class="c-head"><strong>${U.escape(name)}</strong><small>${U.timeAgo(c.createdAt)}</small></div>
+          <p>${U.escape(c.content)}</p>
+        </div>
+      </div>`;
+  }
+
+  function relatedHTML(b) {
+    return `<a class="blog-card" href="/blog-detail.html?id=${b._id}">
+      <div class="thumb ${b.coverImage ? '' : 'placeholder'}"><span class="chip">${U.escape(b.category)}</span>
+        ${b.coverImage ? `<img src="${U.escape(b.coverImage)}" alt="" onerror="this.parentElement.classList.add('placeholder');this.remove()">` : ''}</div>
+      <div class="body"><h3>${U.escape(b.title)}</h3><p class="excerpt">${U.escape(b.excerpt || '')}</p></div>
+    </a>`;
+  }
+
+  function render(blog, related) {
+    const author = blog.author || {};
+    const me = getUser();
+    const isOwner = me && author._id && me.id === author._id.toString();
+    likeCount = blog.likeCount || 0;
+
+    const cover = blog.coverImage
+      ? `<div class="article-hero"><img src="${U.escape(blog.coverImage)}" alt="" onerror="this.closest('.article-hero').remove()"></div>` : '';
+    const tags = (blog.tags || []).map(t => `<span class="tag">#${U.escape(t)}</span>`).join('');
+
+    root.innerHTML = `
+      <article class="article">
+        <a href="/blogs.html" class="muted" style="font-size:.9rem"><i class="fa-solid fa-arrow-left"></i> All stories</a>
+        <div style="margin:18px 0 10px"><span class="chip" style="position:static">${U.escape(blog.category)}</span></div>
+        <h1>${U.escape(blog.title)}</h1>
+        <div class="article-meta">
+          <span class="avatar">${U.escape(U.initials(author.name))}</span>
+          <span><strong>${U.escape(author.name || 'Anonymous')}</strong></span>
+          <span class="dot">·</span><span>${U.date(blog.createdAt)}</span>
+          <span class="dot">·</span><span><i class="fa-regular fa-eye"></i> ${blog.views || 0} views</span>
+          ${isOwner ? `<span style="margin-left:auto;display:flex;gap:8px">
+            <a class="btn btn-ghost btn-sm" href="/edit-blog.html?id=${blog._id}"><i class="fa-solid fa-pen"></i> Edit</a>
+            <button class="btn btn-danger btn-sm" id="deleteBtn"><i class="fa-solid fa-trash"></i> Delete</button></span>` : ''}
+        </div>
+        ${cover}
+        <div class="article-body">${U.escape(blog.content)}</div>
+        ${tags ? `<div class="tags" style="margin-bottom:10px">${tags}</div>` : ''}
+
+        <div class="like-bar">
+          <button class="btn ${liked ? 'btn-primary' : 'btn-ghost'}" id="likeBtn">
+            <i class="fa-${liked ? 'solid' : 'regular'} fa-heart"></i> <span id="likeCount">${likeCount}</span>
+          </button>
+          <span class="muted">${blog.commentCount || (blog.comments || []).length} comments</span>
+        </div>
+
+        <section style="padding:0">
+          <h3 style="margin-bottom:16px">Comments</h3>
+          <div id="commentFormWrap"></div>
+          <div id="comments">${(blog.comments && blog.comments.length ? blog.comments.map(commentHTML).join('') : '<p class="muted">No comments yet. Be the first!</p>')}</div>
+        </section>
+
+        ${related && related.length ? `
+          <section style="padding:40px 0 0">
+            <h3 style="margin-bottom:18px">More in ${U.escape(blog.category)}</h3>
+            <div class="blog-grid">${related.map(relatedHTML).join('')}</div>
+          </section>` : ''}
+      </article>`;
+
+    // comment form (only when logged in)
+    const formWrap = document.getElementById('commentFormWrap');
+    if (isAuthed()) {
+      formWrap.innerHTML = `
+        <form id="commentForm" style="display:flex;gap:10px;margin-bottom:20px">
+          <input class="input" id="commentInput" placeholder="Add a comment..." maxlength="1000" required />
+          <button class="btn btn-primary" type="submit"><i class="fa-solid fa-paper-plane"></i></button>
+        </form>`;
+      document.getElementById('commentForm').addEventListener('submit', onComment);
+    } else {
+      formWrap.innerHTML = `<p class="muted" style="margin-bottom:20px"><a href="/login.html" style="color:var(--brand-2);font-weight:600">Log in</a> to like and comment.</p>`;
     }
-  };
 
-  return sampleBlogs[blogId];
-}
-
-// Load comments from localStorage
-function loadComments(blogId) {
-  const comments = JSON.parse(localStorage.getItem(`comments_${blogId}`) || '[]');
-  const commentsList = document.getElementById('commentsList');
-  commentsList.innerHTML = '';
-
-  if (comments.length === 0) {
-    commentsList.innerHTML = '<p class="text-muted">No comments yet. Be the first to comment!</p>';
-    return;
+    document.getElementById('likeBtn').addEventListener('click', onLike);
+    const del = document.getElementById('deleteBtn');
+    if (del) del.addEventListener('click', onDelete);
   }
 
-  comments.forEach(comment => {
-    const commentElement = createCommentElement(comment);
-    commentsList.appendChild(commentElement);
-  });
-}
-
-// Create comment element
-function createCommentElement(comment) {
-  const div = document.createElement('div');
-  div.className = 'card mb-3';
-  div.innerHTML = `
-    <div class="card-body">
-      <div class="d-flex justify-content-between align-items-center mb-2">
-        <div class="d-flex align-items-center">
-          <img src="${comment.authorImage || '/img/default-avatar.jpg'}" alt="${comment.author}" 
-               class="rounded-circle me-2" width="32" height="32">
-          <span class="fw-bold">${comment.author}</span>
-        </div>
-        <small class="text-muted">${new Date(comment.date).toLocaleDateString()}</small>
-      </div>
-      <p class="card-text">${comment.text}</p>
-    </div>
-  `;
-  return div;
-}
-
-// Handle comment submission
-function handleCommentSubmit(e, blogId) {
-  e.preventDefault();
-  
-  const token = localStorage.getItem('token');
-  if (!token) {
-    showAlert('Please login to comment', 'warning');
-    return;
+  async function onLike() {
+    if (!isAuthed()) { U.toast('Please log in to like posts', 'info'); setTimeout(() => location.href = '/login.html', 700); return; }
+    try {
+      const res = await api(`/blogs/${id}/like`, { method: 'POST', auth: true });
+      liked = res.liked; likeCount = res.likeCount;
+      const btn = document.getElementById('likeBtn');
+      btn.className = `btn ${liked ? 'btn-primary' : 'btn-ghost'}`;
+      btn.querySelector('i').className = `fa-${liked ? 'solid' : 'regular'} fa-heart`;
+      document.getElementById('likeCount').textContent = likeCount;
+    } catch (e) { U.toast(e.message, 'error'); }
   }
 
-  const commentText = document.getElementById('commentText').value.trim();
-  if (!commentText) {
-    showAlert('Please enter a comment', 'warning');
-    return;
+  async function onComment(e) {
+    e.preventDefault();
+    const input = document.getElementById('commentInput');
+    const content = input.value.trim();
+    if (!content) return;
+    try {
+      const res = await api(`/blogs/${id}/comments`, { method: 'POST', auth: true, body: { content } });
+      const list = document.getElementById('comments');
+      if (list.querySelector('.muted')) list.innerHTML = '';
+      list.insertAdjacentHTML('afterbegin', commentHTML(res.comment));
+      input.value = '';
+      U.toast('Comment added', 'success');
+    } catch (err) { U.toast(err.message, 'error'); }
   }
 
-  // Get current user from localStorage
-  const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-  if (!currentUser) {
-    showAlert('User information not found', 'danger');
-    return;
+  async function onDelete() {
+    if (!confirm('Delete this story permanently?')) return;
+    try {
+      await api(`/blogs/${id}`, { method: 'DELETE', auth: true });
+      U.toast('Story deleted', 'success');
+      setTimeout(() => location.href = '/dashboard.html', 700);
+    } catch (e) { U.toast(e.message, 'error'); }
   }
 
-  // Create new comment
-  const newComment = {
-    id: Date.now(),
-    text: commentText,
-    author: currentUser.name,
-    authorImage: currentUser.image || '/img/default-avatar.jpg',
-    date: new Date().toISOString()
-  };
-
-  // Save comment to localStorage
-  const comments = JSON.parse(localStorage.getItem(`comments_${blogId}`) || '[]');
-  comments.push(newComment);
-  localStorage.setItem(`comments_${blogId}`, JSON.stringify(comments));
-
-  // Clear comment input
-  document.getElementById('commentText').value = '';
-  
-  // Reload comments
-  loadComments(blogId);
-  showAlert('Comment posted successfully', 'success');
-}
-
-// Handle like functionality
-function handleLike(blogId) {
-  const token = localStorage.getItem('token');
-  if (!token) {
-    showAlert('Please login to like this post', 'warning');
-    return;
+  async function load() {
+    try {
+      const data = await api(`/blogs/${id}`, { auth: isAuthed() });
+      liked = !!data.liked;
+      document.title = `${data.blog.title} — BlogHub`;
+      render(data.blog, data.related);
+    } catch (e) {
+      root.innerHTML = notFound(e.status === 404 ? 'This story doesn’t exist or was removed.' : e.message);
+    }
   }
 
-  // Get current likes from localStorage
-  const likes = JSON.parse(localStorage.getItem(`likes_${blogId}`) || '[]');
-  const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-
-  if (!currentUser) {
-    showAlert('User information not found', 'danger');
-    return;
-  }
-
-  // Toggle like
-  const userIndex = likes.indexOf(currentUser.id);
-  if (userIndex === -1) {
-    likes.push(currentUser.id);
-  } else {
-    likes.splice(userIndex, 1);
-  }
-
-  // Save likes to localStorage
-  localStorage.setItem(`likes_${blogId}`, JSON.stringify(likes));
-
-  // Update like count and button state
-  const likeCount = likes.length;
-  document.getElementById('likeCount').textContent = likeCount;
-  
-  const likeButton = document.getElementById('likeButton');
-  likeButton.classList.toggle('btn-outline-primary');
-  likeButton.classList.toggle('btn-primary');
-  likeButton.querySelector('i').classList.toggle('far');
-  likeButton.querySelector('i').classList.toggle('fas');
-}
-
-// Check if user has liked the post
-function checkLikeStatus(blogId) {
-  const token = localStorage.getItem('token');
-  if (!token) return;
-
-  const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-  if (!currentUser) return;
-
-  const likes = JSON.parse(localStorage.getItem(`likes_${blogId}`) || '[]');
-  if (likes.includes(currentUser.id)) {
-    const likeButton = document.getElementById('likeButton');
-    likeButton.classList.remove('btn-outline-primary');
-    likeButton.classList.add('btn-primary');
-    likeButton.querySelector('i').classList.remove('far');
-    likeButton.querySelector('i').classList.add('fas');
-  }
-}
-
-// Load related posts
-function loadRelatedPosts(category) {
-  const savedBlogs = JSON.parse(localStorage.getItem('blogs') || '[]');
-  const relatedPosts = savedBlogs
-    .filter(blog => blog.category === category)
-    .slice(0, 3);
-
-  const relatedPostsContainer = document.getElementById('relatedPosts');
-  relatedPostsContainer.innerHTML = '';
-
-  if (relatedPosts.length === 0) {
-    relatedPostsContainer.innerHTML = '<p class="text-muted">No related posts found.</p>';
-    return;
-  }
-
-  relatedPosts.forEach(post => {
-    const postElement = document.createElement('div');
-    postElement.className = 'mb-3';
-    postElement.innerHTML = `
-      <div class="d-flex">
-        <img src="${post.image}" alt="${post.title}" class="rounded me-2" width="60" height="60" style="object-fit: cover;">
-        <div>
-          <h6 class="mb-1"><a href="/blog-detail.html?id=${post.id}" class="text-decoration-none">${post.title}</a></h6>
-          <small class="text-muted">${post.date}</small>
-        </div>
-      </div>
-    `;
-    relatedPostsContainer.appendChild(postElement);
-  });
-}
-
-// Show alert message
-function showAlert(message, type) {
-  const alertContainer = document.querySelector('.alert-container');
-  const alert = document.createElement('div');
-  alert.className = `alert alert-${type} alert-dismissible fade show`;
-  alert.innerHTML = `
-    ${message}
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-  `;
-  alertContainer.appendChild(alert);
-  
-  // Auto dismiss after 5 seconds
-  setTimeout(() => {
-    alert.remove();
-  }, 5000);
-} 
+  load();
+})();

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Write a story — BlogHub</title>
+  <title>Edit story — BlogHub</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
@@ -15,9 +15,9 @@
   <main class="page">
     <div class="container" style="max-width:820px">
       <div class="page-head reveal">
-        <span class="eyebrow"><i class="fa-solid fa-pen-nib"></i> New story</span>
-        <h1 id="form-title">Write a story</h1>
-        <p class="muted">Share something worth reading. You can save it as a draft first.</p>
+        <span class="eyebrow"><i class="fa-solid fa-pen-to-square"></i> Edit story</span>
+        <h1>Edit your story</h1>
+        <p class="muted">Make your changes and update the post.</p>
       </div>
 
       <div id="alert"></div>
@@ -25,14 +25,14 @@
       <form id="blogForm" class="glass" style="padding:28px">
         <div class="field">
           <label for="title">Title</label>
-          <input class="input" id="title" name="title" maxlength="160" placeholder="A catchy, descriptive title" required />
+          <input class="input" id="title" name="title" maxlength="160" required />
         </div>
 
         <div class="grid grid-2" style="gap:18px">
           <div class="field">
             <label for="category">Category</label>
             <select class="input" id="category" name="category" required>
-              <option value="" disabled selected>Choose a category</option>
+              <option value="" disabled>Choose a category</option>
               <option>Technology</option><option>Lifestyle</option><option>Travel</option>
               <option>Food</option><option>Health</option><option>Business</option>
               <option>Literature</option><option>Culture</option><option>Other</option>
@@ -40,28 +40,26 @@
           </div>
           <div class="field">
             <label for="tags">Tags <span class="muted">(comma separated)</span></label>
-            <input class="input" id="tags" name="tags" placeholder="e.g. javascript, web, tips" />
+            <input class="input" id="tags" name="tags" />
           </div>
         </div>
 
         <div class="field">
           <label for="coverImage">Cover image URL <span class="muted">(optional)</span></label>
-          <input class="input" id="coverImage" name="coverImage" type="url" placeholder="https://images.unsplash.com/..." />
-          <p class="hint">Paste any image link. Tip: grab a free one from unsplash.com. Leave empty for a gradient cover.</p>
+          <input class="input" id="coverImage" name="coverImage" type="url" placeholder="https://..." />
         </div>
 
         <div class="field">
           <label for="content">Content</label>
-          <textarea class="textarea" id="content" name="content" rows="14" placeholder="Tell your story..." required></textarea>
-          <p class="hint"><span id="wordcount">0</span> words</p>
+          <textarea class="textarea" id="content" name="content" rows="14" required></textarea>
         </div>
 
         <div style="display:flex;gap:12px;flex-wrap:wrap">
           <button type="submit" class="btn btn-primary" id="publishBtn" data-status="published">
-            <i class="fa-solid fa-paper-plane"></i> Publish
+            <i class="fa-solid fa-check"></i> Update &amp; publish
           </button>
           <button type="submit" class="btn btn-ghost" id="draftBtn" data-status="draft">
-            <i class="fa-solid fa-floppy-disk"></i> Save draft
+            <i class="fa-solid fa-floppy-disk"></i> Save as draft
           </button>
         </div>
       </form>
@@ -72,6 +70,6 @@
 
   <script src="/js/config.js"></script>
   <script src="/js/ui.js"></script>
-  <script src="/js/create-blog.js"></script>
+  <script src="/js/edit-blog.js"></script>
 </body>
 </html>

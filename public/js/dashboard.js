@@ -1,189 +1,85 @@
-// Dashboard JavaScript
+/* Dashboard — the logged-in user's posts + stats */
+(function () {
+  const { api, isAuthed, getUser } = window.BlogHub;
+  const U = window.UI;
 
-document.addEventListener('DOMContentLoaded', () => {
-  // Check if user is authenticated
-  const token = localStorage.getItem('authToken');
-  const userData = JSON.parse(localStorage.getItem('userData'));
+  if (!isAuthed()) { window.location.replace('/login.html'); return; }
 
-  if (!token || !userData) {
-    console.log('No token or user data found, redirecting to login');
-    window.location.href = '/login.html';
-  } else {
-    console.log('User is authenticated, loading dashboard');
-    // Update welcome message
-    document.getElementById('welcomeMessage').textContent = `Welcome, ${userData.name}!`;
-    
-    // Fetch and display user's blogs
-    fetchBlogs();
-  }
-});
+  const statsEl = document.getElementById('stats');
+  const listEl = document.getElementById('myBlogs');
+  const user = getUser();
 
-async function fetchBlogs() {
-  try {
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
+  const greeting = document.getElementById('greeting');
+  if (greeting && user) greeting.textContent = `Hey, ${user.name.split(' ')[0]} 👋`;
 
-    console.log('Fetching blogs with token:', token.substring(0, 20) + '...');
-    const response = await fetch('/api/blogs/user', {
-      headers: {
-        'Authorization': token,
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (!response.ok) {
-      if (response.status === 401) {
-        console.log('Token expired or invalid, redirecting to login');
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('userData');
-        window.location.href = '/login.html';
-        return;
-      }
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const contentType = response.headers.get('content-type');
-    if (!contentType || !contentType.includes('application/json')) {
-      console.error('Invalid content type:', contentType);
-      throw new Error('Server returned non-JSON response');
-    }
-
-    const data = await response.json();
-    console.log('Received blogs data:', data);
-    if (data.success && data.blogs) {
-      displayBlogs(data.blogs);
-    } else {
-      throw new Error('Invalid response format');
-    }
-  } catch (error) {
-    console.error('Error fetching blogs:', error);
-    showAlert('Error loading blogs. Please try again.', 'danger');
-  }
-}
-
-async function deleteBlog(blogId) {
-  if (!confirm('Are you sure you want to delete this blog?')) {
-    return;
+  function statCard(icon, value, label) {
+    return `<div class="feature" style="padding:22px">
+      <div class="ic" style="width:44px;height:44px;font-size:1.1rem"><i class="fa-solid ${icon}"></i></div>
+      <div style="font-family:var(--font-head);font-size:1.8rem;font-weight:700">${value}</div>
+      <div class="muted" style="font-size:.85rem">${label}</div>
+    </div>`;
   }
 
-  try {
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
-
-    console.log('Deleting blog:', blogId);
-    const response = await fetch(`/blogs/${blogId}`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': token,
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (!response.ok) {
-      if (response.status === 401) {
-        console.log('Token expired or invalid, redirecting to login');
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('userData');
-        window.location.href = '/login.html';
-        return;
-      }
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const contentType = response.headers.get('content-type');
-    if (!contentType || !contentType.includes('application/json')) {
-      console.error('Invalid content type:', contentType);
-      throw new Error('Server returned non-JSON response');
-    }
-
-    const data = await response.json();
-    console.log('Delete response:', data);
-    if (data.success) {
-      showAlert('Blog deleted successfully!', 'success');
-      fetchBlogs(); // Refresh the blog list
-    } else {
-      throw new Error(data.message || 'Failed to delete blog');
-    }
-  } catch (error) {
-    console.error('Error deleting blog:', error);
-    showAlert('Error deleting blog. Please try again.', 'danger');
-  }
-}
-
-function showAlert(message, type) {
-  const alertContainer = document.querySelector('.alert-container');
-  const alert = document.createElement('div');
-  alert.className = `alert alert-${type} alert-dismissible fade show`;
-  alert.innerHTML = `
-    ${message}
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-  `;
-  alertContainer.appendChild(alert);
-
-  // Remove alert after 5 seconds
-  setTimeout(() => {
-    alert.remove();
-  }, 5000);
-}
-
-// Handle logout
-function logout() {
-  localStorage.removeItem('authToken');
-  localStorage.removeItem('userData');
-  window.location.href = '/login.html';
-}
-
-function displayBlogs(blogs) {
-  const blogsContainer = document.getElementById('blogsContainer');
-  if (!blogsContainer) {
-    console.error('Blogs container not found');
-    return;
-  }
-
-  if (!blogs || blogs.length === 0) {
-    blogsContainer.innerHTML = `
-      <div class="text-center py-5">
-        <h3>No blogs yet</h3>
-        <p>Start writing your first blog post!</p>
-        <a href="/create-blog.html" class="btn btn-primary">Create Blog</a>
-      </div>
-    `;
-    return;
-  }
-
-  const blogsHTML = blogs.map(blog => `
-    <div class="col-12 mb-4">
-      <div class="card h-100">
-        <div class="row g-0">
-          ${blog.image ? `
-            <div class="col-md-4">
-              <img src="${blog.image}" class="img-fluid rounded-start h-100 object-fit-cover" alt="${blog.title}" style="max-height: 200px;">
-            </div>
-          ` : ''}
-          <div class="col-md-${blog.image ? '8' : '12'}">
-            <div class="card-body">
-              <h5 class="card-title">${blog.title}</h5>
-              <p class="card-text">${blog.excerpt || blog.content.substring(0, 150) + '...'}</p>
-              <div class="d-flex justify-content-between align-items-center">
-                <small class="text-muted">${new Date(blog.createdAt).toLocaleDateString()}</small>
-                <div class="btn-group">
-                  <a href="/blog/${blog.slug}" class="btn btn-sm btn-outline-primary">View</a>
-                  <a href="/edit-blog.html?id=${blog._id}" class="btn btn-sm btn-outline-secondary">Edit</a>
-                  <button onclick="deleteBlog('${blog._id}')" class="btn btn-sm btn-outline-danger">Delete</button>
-                </div>
-              </div>
-            </div>
-          </div>
+  function rowHTML(b) {
+    const statusBadge = b.status === 'draft'
+      ? `<span class="tag" style="color:#fbbf24;background:rgba(251,191,36,.08);border-color:rgba(251,191,36,.25)">Draft</span>`
+      : `<span class="tag">Published</span>`;
+    return `
+      <div class="glass" style="display:flex;gap:16px;align-items:center;padding:16px 18px;margin-bottom:12px">
+        <div style="width:60px;height:60px;border-radius:12px;overflow:hidden;flex:none;background:var(--gradient-3)">
+          ${b.coverImage ? `<img src="${U.escape(b.coverImage)}" style="width:100%;height:100%;object-fit:cover" onerror="this.remove()">` : ''}
         </div>
-      </div>
-    </div>
-  `).join('');
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px">${statusBadge}<span class="muted" style="font-size:.78rem">${U.timeAgo(b.createdAt)}</span></div>
+          <a href="/blog-detail.html?id=${b._id}" style="font-family:var(--font-head);font-weight:600;font-size:1.05rem;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${U.escape(b.title)}</a>
+          <div class="muted" style="font-size:.8rem;margin-top:2px"><i class="fa-regular fa-eye"></i> ${b.views || 0} &nbsp; <i class="fa-regular fa-heart"></i> ${b.likeCount || 0} &nbsp; <i class="fa-regular fa-comment"></i> ${b.commentCount || 0}</div>
+        </div>
+        <div style="display:flex;gap:8px;flex:none">
+          <a class="btn btn-ghost btn-sm" href="/edit-blog.html?id=${b._id}"><i class="fa-solid fa-pen"></i></a>
+          <button class="btn btn-danger btn-sm" data-del="${b._id}"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </div>`;
+  }
 
-  blogsContainer.innerHTML = blogsHTML;
-} 
+  async function load() {
+    listEl.innerHTML = '<div class="spinner"></div>';
+    try {
+      const { blogs } = await api('/blogs/mine', { auth: true });
+
+      const totalViews = blogs.reduce((s, b) => s + (b.views || 0), 0);
+      const totalLikes = blogs.reduce((s, b) => s + (b.likeCount || 0), 0);
+      const drafts = blogs.filter(b => b.status === 'draft').length;
+      statsEl.innerHTML =
+        statCard('fa-newspaper', blogs.length, 'Total stories') +
+        statCard('fa-eye', totalViews, 'Total views') +
+        statCard('fa-heart', totalLikes, 'Total likes') +
+        statCard('fa-file-pen', drafts, 'Drafts');
+
+      if (!blogs.length) {
+        listEl.innerHTML = `<div class="empty"><div class="ic"><i class="fa-regular fa-pen-to-square"></i></div>
+          <p>You haven't written anything yet.</p>
+          <p style="margin-top:16px"><a class="btn btn-primary btn-sm" href="/create-blog.html"><i class="fa-solid fa-pen-nib"></i> Write your first story</a></p></div>`;
+        return;
+      }
+
+      listEl.innerHTML = blogs.map(rowHTML).join('');
+      listEl.querySelectorAll('[data-del]').forEach(btn => {
+        btn.addEventListener('click', () => onDelete(btn.dataset.del, btn));
+      });
+    } catch (e) {
+      listEl.innerHTML = `<div class="empty"><div class="ic"><i class="fa-solid fa-triangle-exclamation"></i></div><p>${U.escape(e.message)}</p></div>`;
+    }
+  }
+
+  async function onDelete(id, btn) {
+    if (!confirm('Delete this story permanently?')) return;
+    btn.disabled = true;
+    try {
+      await api(`/blogs/${id}`, { method: 'DELETE', auth: true });
+      U.toast('Story deleted', 'success');
+      load();
+    } catch (e) { U.toast(e.message, 'error'); btn.disabled = false; }
+  }
+
+  load();
+})();

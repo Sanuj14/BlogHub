@@ -1,231 +1,58 @@
+require('dotenv').config();
+
 const express = require('express');
 const path = require('path');
-const session = require('express-session');
-const flash = require('connect-flash');
-const methodOverride = require('method-override');
-const dotenv = require('dotenv');
-const mongoose = require('mongoose');
-const passport = require('passport');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const User = require('./models/User');
-const Blog = require('./models/Blog');
 const cors = require('cors');
-const multer = require('multer');
-
-
-dotenv.config();
-
+const connectDB = require('./config/db');
 
 const app = express();
 
-
-const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
-
-
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/bloghub', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-  .then(() => console.log('MongoDB Connected'))
-  .catch(err => console.log('MongoDB connection error:', err));
-
-require('./config/passport')(passport);
-
-app.use(cors({
-  origin: true,
-  credentials: true,
-  exposedHeaders: ['Content-Length', 'X-Foo', 'X-Bar'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
-}));
+app.use(cors());
+app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-app.use(methodOverride('_method'));
 
-
+// Serve the static frontend (used locally; on Vercel the CDN serves /public).
 app.use(express.static(path.join(__dirname, 'public')));
 
-
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'bloghub_secret',
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: process.env.NODE_ENV === 'production',
-    httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
-  }
-}));
-
-
-app.use(passport.initialize());
-app.use(passport.session());
-
-
-app.use(flash());
-
-
-app.use((req, res, next) => {
-  res.locals.success_msg = req.flash('success_msg');
-  res.locals.error_msg = req.flash('error_msg');
-  res.locals.error = req.flash('error');
-  res.locals.user = req.user || null;
-  next();
-});
-
-
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
-
-
-const authRoutes = require('./routes/auth');
-const blogRoutes = require('./routes/blogs');
-const userRoutes = require('./routes/users');
-const indexRoutes = require('./routes/index');
-const dashboardRoutes = require('./routes/dashboard');
-
-console.log('Routes imported successfully');
-
-
-app.use('/api/auth', authRoutes);
-app.use('/api/blogs', blogRoutes);
-app.use('/blogs', blogRoutes);
-app.use('/users', userRoutes);
-app.use('/', indexRoutes);
-app.use('/dashboard', dashboardRoutes);
-
-
-app.get('/api/blogs', async (req, res) => {
+// Make sure the database is connected before any API request is handled.
+// This is what keeps the app working in a serverless (Vercel) environment.
+app.use('/api', async (req, res, next) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 9;
-    const skip = (page - 1) * limit;
-    
-    // Build query
-    const query = { status: 'published' };
-    if (req.query.category) {
-      query.category = req.query.category;
-    }
-    if (req.query.search) {
-      query.$or = [
-        { title: { $regex: req.query.search, $options: 'i' } },
-        { content: { $regex: req.query.search, $options: 'i' } }
-      ];
-    }
-    
-    // Get blogs
-    const blogs = await Blog.find(query)
-      .populate('author', 'name avatar')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
-
-    const totalBlogs = await Blog.countDocuments(query);
-    const totalPages = Math.ceil(totalBlogs / limit);
-
-    res.json({
-      success: true,
-      blogs,
-      totalPages,
-      currentPage: page
-    });
+    await connectDB();
+    next();
   } catch (err) {
-    console.error('Error fetching blogs:', err);
-    res.status(500).json({ 
-      success: false,
-      message: 'Error fetching blogs',
-      error: err.message 
-    });
+    console.error('DB connection error:', err.message);
+    res.status(503).json({ success: false, message: 'Database unavailable. Check MONGODB_URI.' });
   }
 });
 
+// API routes
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/blogs', require('./routes/blogs'));
 
-app.get('/blogs', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'blogs.html'));
-});
+app.get('/api/health', (req, res) => res.json({ success: true, status: 'ok' }));
 
-app.get('/blogs/:id', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'blog-detail.html'));
-});
+// Unknown API route -> JSON 404
+app.use('/api', (req, res) => res.status(404).json({ success: false, message: 'API route not found' }));
 
-app.get('/create-blog', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'create-blog.html'));
-});
-
-app.get('/profile', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'profile.html'));
-});
-
-app.get('/edit-profile', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'edit-profile.html'));
-});
-
-app.get('/about', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'about.html'));
-});
-
-app.get('/contact', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'contact.html'));
-});
-
-
-app.get('/:page.html', (req, res) => {
-  const page = req.params.page;
-  const filePath = path.join(__dirname, 'public', `${page}.html`);
-  
-
-  const fs = require('fs');
-  if (fs.existsSync(filePath)) {
-    res.sendFile(filePath);
-  } else {
-    res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
-  }
-});
-
-
+// Anything else that isn't a static file -> the 404 page (locally).
 app.use((req, res) => {
-  res.status(404).json({ message: 'Route not found' });
+  res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
 });
 
-
-app.get('/emergency-logout', (req, res) => {
-  // Clear session
-  if (req.session) {
-    req.session.destroy((err) => {
-      if (err) {
-        console.error('Session destruction error:', err);
-      }
-    });
-  }
-  
-
-  res.clearCookie('connect.sid');
-  
-
-  res.send(`
-    <script>
-      // Clear any stored tokens or user data
-      localStorage.clear();
-      sessionStorage.clear();
-      
-      // Show message
-      alert('Successfully logged out. You will be redirected to the login page.');
-      
-      // Redirect to login
-      window.location.href = '/login';
-    </script>
-  `);
-});
-
-
+// Central error handler
+// eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ message: 'Something broke!' });
+  res.status(500).json({ success: false, message: 'Something went wrong' });
 });
 
+// Only start a listener when run directly (`node app.js`).
+// On Vercel the app is imported by api/index.js and must NOT call listen().
+if (require.main === module) {
+  const PORT = process.env.PORT || 3000;
+  connectDB().catch((e) => console.error(e.message));
+  app.listen(PORT, () => console.log(`🚀 BlogHub running at http://localhost:${PORT}`));
+}
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
-module.exports = app; 
+module.exports = app;
