@@ -190,7 +190,21 @@
     els.forEach(e => io.observe(e));
   }
 
+  function initFavicon() {
+    if (document.querySelector('link[rel="icon"]')) return;
+    const link = document.createElement('link');
+    link.rel = 'icon';
+    link.type = 'image/svg+xml';
+    link.href = '/favicon.svg';
+    document.head.appendChild(link);
+    const meta = document.createElement('meta');
+    meta.name = 'theme-color';
+    meta.content = '#0c0c0c';
+    document.head.appendChild(meta);
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
+    initFavicon();
     renderNav();
     renderFooter();
     initReveal();
