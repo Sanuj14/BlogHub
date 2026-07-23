@@ -55,8 +55,10 @@
         <div style="margin:18px 0 10px"><span class="chip" style="position:static">${U.escape(blog.category)}</span></div>
         <h1>${U.escape(blog.title)}</h1>
         <div class="article-meta">
-          <span class="avatar">${U.escape(U.initials(author.name))}</span>
-          <span><strong>${U.escape(author.name || 'Anonymous')}</strong></span>
+          ${author._id ? `<a href="/profile.html?id=${author._id}" style="display:flex;align-items:center;gap:8px">
+            <span class="avatar">${U.escape(U.initials(author.name))}</span>
+            <strong>${U.escape(author.name || 'Anonymous')}</strong></a>`
+            : `<span class="avatar">${U.escape(U.initials(author.name))}</span><span><strong>${U.escape(author.name || 'Anonymous')}</strong></span>`}
           <span class="dot">·</span><span>${U.date(blog.createdAt)}</span>
           <span class="dot">·</span><span><i class="fa-regular fa-eye"></i> ${blog.views || 0} views</span>
           ${isOwner ? `<span style="margin-left:auto;display:flex;gap:8px">

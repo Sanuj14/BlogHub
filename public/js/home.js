@@ -88,11 +88,11 @@
           : U.escape(U.initials(u.name));
         return `
           <div class="feature reveal" style="display:flex;align-items:center;gap:14px;padding:18px">
-            <div style="width:52px;height:52px;border-radius:50%;overflow:hidden;flex:none;background:var(--yellow);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:900;font-size:1.1rem;border:var(--bd)">${avatar}</div>
-            <div style="flex:1;min-width:0">
+            <a href="/profile.html?id=${U.escape(u._id)}" style="width:52px;height:52px;border-radius:50%;overflow:hidden;flex:none;background:var(--yellow);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:900;font-size:1.1rem;border:var(--bd)">${avatar}</a>
+            <a href="/profile.html?id=${U.escape(u._id)}" style="flex:1;min-width:0">
               <div style="font-family:var(--font-display);font-weight:900;font-size:.95rem;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${U.escape(u.name)}</div>
               <div class="muted" style="font-size:.78rem">@${U.escape(u.username)}${isNew ? ' &nbsp;<span style="background:var(--yellow);color:var(--ink);font-size:.68rem;padding:1px 6px;font-family:var(--font-mono);text-transform:uppercase;border:1px solid var(--ink)">New</span>' : ''}</div>
-            </div>
+            </a>
             ${isAuthed()
               ? `<button class="btn btn-ghost btn-sm follow-btn" data-id="${U.escape(u._id)}" style="flex:none"><i class="fa-solid fa-user-plus"></i></button>`
               : `<a class="btn btn-ghost btn-sm" href="/register.html" style="flex:none"><i class="fa-solid fa-user-plus"></i></a>`}
