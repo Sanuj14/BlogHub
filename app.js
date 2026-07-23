@@ -30,6 +30,7 @@ app.use('/api', async (req, res, next) => {
 // API routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/blogs', require('./routes/blogs'));
+app.use('/api/users', require('./routes/users'));
 
 app.get('/api/health', (req, res) => res.json({ success: true, status: 'ok' }));
 

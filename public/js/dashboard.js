@@ -109,7 +109,10 @@
   async function load() {
     listEl.innerHTML = '<div class="spinner"></div>';
     try {
-      const { blogs } = await api('/blogs/mine', { auth: true });
+      const [{ blogs }, counts] = await Promise.all([
+        api('/blogs/mine', { auth: true }),
+        api('/users/me/counts', { auth: true }).catch(() => ({ following: 0, followers: 0 }))
+      ]);
 
       const totalViews = blogs.reduce((s, b) => s + (b.views || 0), 0);
       const totalLikes = blogs.reduce((s, b) => s + (b.likeCount || 0), 0);
@@ -118,7 +121,9 @@
         statCard('fa-newspaper', blogs.length, 'Total stories') +
         statCard('fa-eye', totalViews, 'Total views') +
         statCard('fa-heart', totalLikes, 'Total likes') +
-        statCard('fa-file-pen', drafts, 'Drafts');
+        statCard('fa-file-pen', drafts, 'Drafts') +
+        statCard('fa-user-plus', counts.following, 'Following') +
+        statCard('fa-users', counts.followers, 'Followers');
 
       if (!blogs.length) {
         listEl.innerHTML = `<div class="empty"><div class="ic"><i class="fa-regular fa-pen-to-square"></i></div>
