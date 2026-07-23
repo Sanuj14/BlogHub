@@ -6,9 +6,11 @@ const { requireAuth, optionalAuth } = require('../middleware/auth');
 // GET /api/users/suggestions – people to follow (excludes self + already-followed)
 router.get('/suggestions', optionalAuth, async (req, res) => {
   try {
-    const exclude = req.user
-      ? [req.user.id, ...(await User.findById(req.user.id).select('following').lean()).following]
-      : [];
+    let exclude = [];
+    if (req.user) {
+      const me = await User.findById(req.user.id).select('following').lean();
+      exclude = [req.user.id, ...(me && me.following ? me.following : [])];
+    }
     const users = await User.find({ _id: { $nin: exclude } })
       .select('name username avatar createdAt')
       .sort({ createdAt: -1 })

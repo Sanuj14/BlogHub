@@ -8,6 +8,7 @@
   const id = new URLSearchParams(location.search).get('id');
   const form = document.getElementById('blogForm');
   const alertBox = document.getElementById('alert');
+  const contentEl = document.getElementById('content');
   const coverImageInput = document.getElementById('coverImage');
   const coverFileInput = document.getElementById('coverFile');
   const coverPreview = document.getElementById('coverPreview');
@@ -20,6 +21,8 @@
   }
 
   if (!id) { showAlert('No story specified.'); return; }
+
+  U.initEditor(contentEl, null);
 
   function showCoverPreview(src) {
     if (src) { coverPreviewImg.src = src; coverPreview.style.display = ''; }
@@ -45,7 +48,6 @@
     coverPreview.style.display = 'none';
   });
 
-  // Load existing post and prefill.
   (async function load() {
     try {
       const data = await api(`/blogs/${id}`);
@@ -61,7 +63,7 @@
       form.category.value = b.category || '';
       form.tags.value = (b.tags || []).join(', ');
       coverImageInput.value = b.coverImage || '';
-      form.content.value = b.content || '';
+      contentEl.innerHTML = U.sanitizeHTML(b.content || '');
       if (b.coverImage) showCoverPreview(b.coverImage);
     } catch (e) {
       showAlert(e.status === 404 ? 'Story not found.' : e.message);
@@ -79,10 +81,10 @@
       category: form.category.value,
       tags: form.tags.value.trim(),
       coverImage: coverImageInput.value.trim(),
-      content: form.content.value.trim(),
+      content: U.sanitizeHTML(contentEl.innerHTML.trim()),
       status
     };
-    if (!payload.title || !payload.category || !payload.content) {
+    if (!payload.title || !payload.category || !contentEl.innerText.trim()) {
       return showAlert('Title, category and content are required.');
     }
 

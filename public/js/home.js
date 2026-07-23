@@ -66,6 +66,11 @@
   document.querySelectorAll('[data-cta="start"]').forEach(a => {
     if (isAuthed()) a.setAttribute('href', '/create-blog.html');
   });
+  // Hide the "Create account" CTA band entirely when already logged in.
+  if (isAuthed()) {
+    const cta = document.getElementById('ctaSection');
+    if (cta) cta.style.display = 'none';
+  }
 
   async function loadPeople() {
     const section = document.getElementById('peopleSection');

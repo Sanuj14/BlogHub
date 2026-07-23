@@ -64,7 +64,7 @@
             <button class="btn btn-danger btn-sm" id="deleteBtn"><i class="fa-solid fa-trash"></i> Delete</button></span>` : ''}
         </div>
         ${cover}
-        <div class="article-body">${U.escape(blog.content)}</div>
+        <div class="article-body">${U.sanitizeHTML(blog.content)}</div>
         ${tags ? `<div class="tags" style="margin-bottom:10px">${tags}</div>` : ''}
 
         <div class="like-bar">

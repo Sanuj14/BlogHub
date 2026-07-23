@@ -61,8 +61,37 @@
         </div>
 
         <div class="field">
-          <label for="content">Content</label>
-          <textarea class="textarea" id="content" name="content" rows="14" required></textarea>
+          <label>Content</label>
+          <div class="editor-toolbar">
+            <select id="fontFamily" title="Font">
+              <option value="">Default</option>
+              <option value="Georgia, serif">Georgia</option>
+              <option value="'Courier New', monospace">Courier</option>
+              <option value="Arial, sans-serif">Arial</option>
+              <option value="'Times New Roman', serif">Times</option>
+            </select>
+            <select id="fontSize" title="Size">
+              <option value="">Size</option>
+              <option value="1">Small</option>
+              <option value="3">Normal</option>
+              <option value="5">Large</option>
+              <option value="7">Huge</option>
+            </select>
+            <button type="button" data-cmd="bold" title="Bold"><b>B</b></button>
+            <button type="button" data-cmd="italic" title="Italic"><i>I</i></button>
+            <button type="button" data-cmd="underline" title="Underline"><u>U</u></button>
+            <button type="button" data-cmd="strikeThrough" title="Strike"><s>S</s></button>
+            <span class="editor-sep"></span>
+            <button type="button" data-cmd="justifyLeft" title="Align left"><i class="fa-solid fa-align-left"></i></button>
+            <button type="button" data-cmd="justifyCenter" title="Center"><i class="fa-solid fa-align-center"></i></button>
+            <button type="button" data-cmd="justifyRight" title="Align right"><i class="fa-solid fa-align-right"></i></button>
+            <span class="editor-sep"></span>
+            <button type="button" data-cmd="insertUnorderedList" title="Bullet list"><i class="fa-solid fa-list-ul"></i></button>
+            <button type="button" data-cmd="insertOrderedList" title="Numbered list"><i class="fa-solid fa-list-ol"></i></button>
+            <span class="editor-sep"></span>
+            <button type="button" data-cmd="removeFormat" title="Clear formatting"><i class="fa-solid fa-eraser"></i></button>
+          </div>
+          <div class="editor-body" id="content" contenteditable="true" data-placeholder="Tell your story..."></div>
         </div>
 
         <div style="display:flex;gap:12px;flex-wrap:wrap">

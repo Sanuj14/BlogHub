@@ -43,6 +43,8 @@ const UserSchema = new mongoose.Schema(
     },
     following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    resetCode: { type: String, select: false },
+    resetExpiry: { type: Date, select: false },
     role: {
       type: String,
       enum: ['user', 'admin'],

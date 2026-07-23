@@ -69,6 +69,52 @@
       };
       return map[cat] || 'fa-asterisk';
     },
+    /**
+     * Strip dangerous markup from user HTML (scripts, event handlers,
+     * javascript: URLs) while keeping formatting tags. Used before both
+     * saving and rendering rich-text blog content.
+     */
+    sanitizeHTML(html) {
+      const doc = new DOMParser().parseFromString(String(html || ''), 'text/html');
+      doc.querySelectorAll('script, style, iframe, object, embed, link, meta').forEach(el => el.remove());
+      doc.querySelectorAll('*').forEach(el => {
+        [...el.attributes].forEach(attr => {
+          const name = attr.name.toLowerCase();
+          const value = attr.value.toLowerCase().replace(/\s/g, '');
+          if (name.startsWith('on')) el.removeAttribute(attr.name);
+          else if ((name === 'href' || name === 'src') && value.startsWith('javascript:')) el.removeAttribute(attr.name);
+        });
+      });
+      return doc.body.innerHTML;
+    },
+    /** Wire a contenteditable rich-text editor to its .editor-toolbar. */
+    initEditor(contentEl, onInput) {
+      const toolbar = document.querySelector('.editor-toolbar');
+      if (!toolbar || !contentEl) return;
+
+      toolbar.querySelectorAll('button[data-cmd]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          contentEl.focus();
+          document.execCommand(btn.dataset.cmd, false, null);
+          if (onInput) onInput();
+        });
+      });
+
+      const fontFamily = document.getElementById('fontFamily');
+      if (fontFamily) fontFamily.addEventListener('change', () => {
+        contentEl.focus();
+        if (fontFamily.value) document.execCommand('fontName', false, fontFamily.value);
+      });
+
+      const fontSize = document.getElementById('fontSize');
+      if (fontSize) fontSize.addEventListener('change', () => {
+        contentEl.focus();
+        if (fontSize.value) document.execCommand('fontSize', false, fontSize.value);
+      });
+
+      if (onInput) contentEl.addEventListener('input', onInput);
+    },
     toast(message, type = 'info') {
       let wrap = document.querySelector('.toast-wrap');
       if (!wrap) { wrap = document.createElement('div'); wrap.className = 'toast-wrap'; document.body.appendChild(wrap); }

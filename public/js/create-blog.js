@@ -7,7 +7,7 @@
 
   const form = document.getElementById('blogForm');
   const alertBox = document.getElementById('alert');
-  const content = document.getElementById('content');
+  const contentEl = document.getElementById('content');
   const wordcount = document.getElementById('wordcount');
   const coverImageInput = document.getElementById('coverImage');
   const coverFileInput = document.getElementById('coverFile');
@@ -15,8 +15,9 @@
   const coverPreviewImg = document.getElementById('coverPreviewImg');
   const coverRemove = document.getElementById('coverRemove');
 
-  content.addEventListener('input', () => {
-    const words = content.value.trim().split(/\s+/).filter(Boolean).length;
+  // Init rich text editor
+  U.initEditor(contentEl, () => {
+    const words = contentEl.innerText.trim().split(/\s+/).filter(Boolean).length;
     wordcount.textContent = words;
   });
 
@@ -57,17 +58,17 @@
     if (submitting) return;
 
     const status = (document.activeElement && document.activeElement.dataset.status) || 'published';
-
+    const rawContent = contentEl.innerHTML.trim();
     const payload = {
       title: form.title.value.trim(),
       category: form.category.value,
       tags: form.tags.value.trim(),
       coverImage: coverImageInput.value.trim(),
-      content: form.content.value.trim(),
+      content: U.sanitizeHTML(rawContent),
       status
     };
 
-    if (!payload.title || !payload.category || !payload.content) {
+    if (!payload.title || !payload.category || !contentEl.innerText.trim()) {
       return showAlert('Title, category and content are required.');
     }
 
