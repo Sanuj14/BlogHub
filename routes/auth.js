@@ -97,4 +97,76 @@ router.get('/me', requireAuth, async (req, res) => {
   }
 });
 
+// PUT /api/auth/profile – update the current user's username / avatar / name / bio
+router.put('/profile', requireAuth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    const { name, username, avatar, bio } = req.body;
+
+    if (username !== undefined) {
+      const next = String(username).trim().toLowerCase();
+      if (!/^[a-zA-Z0-9_]{3,}$/.test(next)) {
+        return res
+          .status(400)
+          .json({ success: false, message: 'Username must be 3+ characters (letters, numbers, underscores)' });
+      }
+      if (next !== user.username) {
+        const taken = await User.findOne({ username: next, _id: { $ne: user._id } });
+        if (taken) return res.status(409).json({ success: false, message: 'Username is already taken' });
+        user.username = next;
+      }
+    }
+
+    if (name !== undefined) {
+      const trimmed = String(name).trim();
+      if (trimmed.length < 2) {
+        return res.status(400).json({ success: false, message: 'Name must be at least 2 characters long' });
+      }
+      user.name = trimmed;
+    }
+
+    if (avatar !== undefined) {
+      const value = String(avatar).trim();
+      // Accept an http(s) URL or a base64 image data URL picked from the gallery.
+      if (value && !/^(https?:\/\/|data:image\/)/.test(value)) {
+        return res.status(400).json({ success: false, message: 'Avatar must be an image URL or uploaded file' });
+      }
+      user.avatar = value;
+    }
+
+    if (bio !== undefined) user.bio = String(bio).trim().slice(0, 280);
+
+    await user.save();
+
+    // Issue a fresh token so the embedded name/username stay in sync.
+    const token = signToken(user);
+    res.json({
+      success: true,
+      message: 'Profile updated',
+      token: 'Bearer ' + token,
+      user: {
+        id: user._id,
+        name: user.name,
+        username: user.username,
+        email: user.email,
+        avatar: user.avatar,
+        bio: user.bio,
+        role: user.role
+      }
+    });
+  } catch (err) {
+    if (err && err.code === 11000) {
+      return res.status(409).json({ success: false, message: 'Username is already taken' });
+    }
+    if (err && err.name === 'ValidationError') {
+      const message = Object.values(err.errors)[0].message;
+      return res.status(400).json({ success: false, message });
+    }
+    console.error('Profile update error:', err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
 module.exports = router;

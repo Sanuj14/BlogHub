@@ -23,6 +23,40 @@
         <a href="/create-blog.html" class="btn btn-primary"><i class="fa-solid fa-pen-nib"></i> New story</a>
       </div>
 
+      <!-- Profile card -->
+      <div class="glass" id="profileCard" style="padding:24px;margin-bottom:28px;display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap">
+        <div style="position:relative;flex:none">
+          <div id="avatarPreview" style="width:80px;height:80px;border-radius:50%;overflow:hidden;background:var(--gradient-3);display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-size:1.6rem;font-weight:700;cursor:pointer" title="Click to change photo"></div>
+          <label for="avatarFile" style="position:absolute;bottom:0;right:0;background:var(--brand-1);border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.7rem" title="Upload photo">
+            <i class="fa-solid fa-camera" style="color:#fff"></i>
+          </label>
+          <input type="file" id="avatarFile" accept="image/*" style="display:none" />
+        </div>
+        <div style="flex:1;min-width:200px">
+          <div id="profileView">
+            <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:700" id="profileName"></div>
+            <div class="muted" style="font-size:.85rem" id="profileUsername"></div>
+            <button class="btn btn-ghost btn-sm" id="editProfileBtn" style="margin-top:10px"><i class="fa-solid fa-pen"></i> Edit profile</button>
+          </div>
+          <div id="profileEdit" style="display:none">
+            <div class="grid grid-2" style="gap:12px;margin-bottom:12px">
+              <div class="field" style="margin:0">
+                <label style="font-size:.8rem">Name</label>
+                <input class="input" id="editName" placeholder="Your name" />
+              </div>
+              <div class="field" style="margin:0">
+                <label style="font-size:.8rem">Username</label>
+                <input class="input" id="editUsername" placeholder="username" />
+              </div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-primary btn-sm" id="saveProfileBtn"><i class="fa-solid fa-check"></i> Save</button>
+              <button class="btn btn-ghost btn-sm" id="cancelProfileBtn">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="grid grid-4" id="stats" style="margin-bottom:34px"></div>
 
       <div id="myBlogs"></div>

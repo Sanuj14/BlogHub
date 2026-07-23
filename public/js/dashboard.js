@@ -1,17 +1,82 @@
 /* Dashboard — the logged-in user's posts + stats */
 (function () {
-  const { api, isAuthed, getUser } = window.BlogHub;
+  const { api, isAuthed, getUser, setAuth } = window.BlogHub;
   const U = window.UI;
 
   if (!isAuthed()) { window.location.replace('/login.html'); return; }
 
   const statsEl = document.getElementById('stats');
   const listEl = document.getElementById('myBlogs');
-  const user = getUser();
+  let user = getUser();
 
   const greeting = document.getElementById('greeting');
   if (greeting && user) greeting.textContent = `Hey, ${user.name.split(' ')[0]} 👋`;
 
+  /* ---- profile card ---- */
+  function renderProfileCard(u) {
+    const nameEl = document.getElementById('profileName');
+    const unameEl = document.getElementById('profileUsername');
+    const preview = document.getElementById('avatarPreview');
+    if (nameEl) nameEl.textContent = u.name || '';
+    if (unameEl) unameEl.textContent = u.username ? `@${u.username}` : '';
+    if (preview) {
+      if (u.avatar) {
+        preview.innerHTML = `<img src="${U.escape(u.avatar)}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='${U.escape(U.initials(u.name))}'">`;
+      } else {
+        preview.textContent = U.initials(u.name);
+      }
+    }
+    const editName = document.getElementById('editName');
+    const editUsername = document.getElementById('editUsername');
+    if (editName) editName.value = u.name || '';
+    if (editUsername) editUsername.value = u.username || '';
+  }
+
+  renderProfileCard(user);
+
+  document.getElementById('editProfileBtn')?.addEventListener('click', () => {
+    document.getElementById('profileView').style.display = 'none';
+    document.getElementById('profileEdit').style.display = '';
+  });
+
+  document.getElementById('cancelProfileBtn')?.addEventListener('click', () => {
+    document.getElementById('profileEdit').style.display = 'none';
+    document.getElementById('profileView').style.display = '';
+  });
+
+  document.getElementById('saveProfileBtn')?.addEventListener('click', async () => {
+    const name = document.getElementById('editName').value.trim();
+    const username = document.getElementById('editUsername').value.trim();
+    if (!name || !username) { U.toast('Name and username are required', 'error'); return; }
+    const btn = document.getElementById('saveProfileBtn');
+    btn.disabled = true;
+    try {
+      const res = await api('/auth/profile', { method: 'PUT', auth: true, body: { name, username } });
+      setAuth(res.token, res.user);
+      user = res.user;
+      renderProfileCard(user);
+      document.getElementById('profileEdit').style.display = 'none';
+      document.getElementById('profileView').style.display = '';
+      U.toast('Profile updated', 'success');
+    } catch (e) { U.toast(e.message, 'error'); }
+    btn.disabled = false;
+  });
+
+  document.getElementById('avatarFile')?.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const dataUrl = await U.compressImage(file, { maxSize: 400, quality: 0.85 });
+      const res = await api('/auth/profile', { method: 'PUT', auth: true, body: { avatar: dataUrl } });
+      setAuth(res.token, res.user);
+      user = res.user;
+      renderProfileCard(user);
+      U.toast('Photo updated', 'success');
+    } catch (e) { U.toast(e.message, 'error'); }
+    e.target.value = '';
+  });
+
+  /* ---- stat card + blog row helpers ---- */
   function statCard(icon, value, label) {
     return `<div class="feature" style="padding:22px">
       <div class="ic" style="width:44px;height:44px;font-size:1.1rem"><i class="fa-solid ${icon}"></i></div>

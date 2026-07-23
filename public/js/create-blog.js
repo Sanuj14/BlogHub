@@ -9,10 +9,41 @@
   const alertBox = document.getElementById('alert');
   const content = document.getElementById('content');
   const wordcount = document.getElementById('wordcount');
+  const coverImageInput = document.getElementById('coverImage');
+  const coverFileInput = document.getElementById('coverFile');
+  const coverPreview = document.getElementById('coverPreview');
+  const coverPreviewImg = document.getElementById('coverPreviewImg');
+  const coverRemove = document.getElementById('coverRemove');
 
   content.addEventListener('input', () => {
     const words = content.value.trim().split(/\s+/).filter(Boolean).length;
     wordcount.textContent = words;
+  });
+
+  // Show preview when URL is typed
+  coverImageInput.addEventListener('input', () => {
+    const url = coverImageInput.value.trim();
+    if (url) { coverPreviewImg.src = url; coverPreview.style.display = ''; }
+    else coverPreview.style.display = 'none';
+  });
+
+  // Gallery picker
+  coverFileInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const dataUrl = await U.compressImage(file, { maxSize: 1280, quality: 0.82 });
+      coverImageInput.value = dataUrl;
+      coverPreviewImg.src = dataUrl;
+      coverPreview.style.display = '';
+    } catch (err) { U.toast(err.message, 'error'); }
+    e.target.value = '';
+  });
+
+  coverRemove?.addEventListener('click', () => {
+    coverImageInput.value = '';
+    coverPreviewImg.src = '';
+    coverPreview.style.display = 'none';
   });
 
   function showAlert(msg, type = 'error') {
@@ -25,14 +56,13 @@
     e.preventDefault();
     if (submitting) return;
 
-    // Which button was clicked decides published vs draft.
     const status = (document.activeElement && document.activeElement.dataset.status) || 'published';
 
     const payload = {
       title: form.title.value.trim(),
       category: form.category.value,
       tags: form.tags.value.trim(),
-      coverImage: form.coverImage.value.trim(),
+      coverImage: coverImageInput.value.trim(),
       content: form.content.value.trim(),
       status
     };

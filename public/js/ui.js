@@ -12,6 +12,41 @@
     initials(name) {
       return String(name || '?').trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase() || '?';
     },
+    /**
+     * Read an image File picked from the gallery, downscale it on a canvas and
+     * return a compressed JPEG/PNG data URL. Keeps the payload small enough to
+     * store directly in MongoDB (serverless friendly — no disk needed).
+     */
+    compressImage(file, { maxSize = 1280, quality = 0.82 } = {}) {
+      return new Promise((resolve, reject) => {
+        if (!file || !file.type || !file.type.startsWith('image/')) {
+          return reject(new Error('Please choose an image file'));
+        }
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error('Could not read that file'));
+        reader.onload = () => {
+          const img = new Image();
+          img.onerror = () => reject(new Error('That image could not be loaded'));
+          img.onload = () => {
+            let { width, height } = img;
+            if (width > maxSize || height > maxSize) {
+              const scale = Math.min(maxSize / width, maxSize / height);
+              width = Math.round(width * scale);
+              height = Math.round(height * scale);
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+            // PNGs with transparency stay PNG; everything else becomes JPEG.
+            const isPng = file.type === 'image/png';
+            resolve(canvas.toDataURL(isPng ? 'image/png' : 'image/jpeg', quality));
+          };
+          img.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    },
     timeAgo(date) {
       const d = new Date(date);
       const s = Math.floor((Date.now() - d.getTime()) / 1000);
@@ -73,7 +108,9 @@
               <a href="/create-blog.html" class="btn btn-primary btn-sm nav-desktop-only">✎ Write</a>
               <div class="menu">
                 <button class="avatar-btn" id="avatarBtn" aria-haspopup="true">
-                  <span class="avatar">${U.escape(U.initials(user && user.name))}</span>
+                  ${user && user.avatar
+                    ? `<span class="avatar" style="padding:0;overflow:hidden"><img src="${U.escape(user.avatar)}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.textContent='${U.escape(U.initials(user && user.name))}'"></span>`
+                    : `<span class="avatar">${U.escape(U.initials(user && user.name))}</span>`}
                   <i class="fa-solid fa-chevron-down" style="font-size:.65rem"></i>
                 </button>
                 <div class="dropdown" id="userDropdown">

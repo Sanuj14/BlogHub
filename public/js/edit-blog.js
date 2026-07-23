@@ -8,6 +8,11 @@
   const id = new URLSearchParams(location.search).get('id');
   const form = document.getElementById('blogForm');
   const alertBox = document.getElementById('alert');
+  const coverImageInput = document.getElementById('coverImage');
+  const coverFileInput = document.getElementById('coverFile');
+  const coverPreview = document.getElementById('coverPreview');
+  const coverPreviewImg = document.getElementById('coverPreviewImg');
+  const coverRemove = document.getElementById('coverRemove');
 
   function showAlert(msg, type = 'error') {
     alertBox.innerHTML = `<div class="inline-alert ${type}">${U.escape(msg)}</div>`;
@@ -15,6 +20,30 @@
   }
 
   if (!id) { showAlert('No story specified.'); return; }
+
+  function showCoverPreview(src) {
+    if (src) { coverPreviewImg.src = src; coverPreview.style.display = ''; }
+    else coverPreview.style.display = 'none';
+  }
+
+  coverImageInput.addEventListener('input', () => showCoverPreview(coverImageInput.value.trim()));
+
+  coverFileInput?.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const dataUrl = await U.compressImage(file, { maxSize: 1280, quality: 0.82 });
+      coverImageInput.value = dataUrl;
+      showCoverPreview(dataUrl);
+    } catch (err) { U.toast(err.message, 'error'); }
+    e.target.value = '';
+  });
+
+  coverRemove?.addEventListener('click', () => {
+    coverImageInput.value = '';
+    coverPreviewImg.src = '';
+    coverPreview.style.display = 'none';
+  });
 
   // Load existing post and prefill.
   (async function load() {
@@ -31,8 +60,9 @@
       form.title.value = b.title || '';
       form.category.value = b.category || '';
       form.tags.value = (b.tags || []).join(', ');
-      form.coverImage.value = b.coverImage || '';
+      coverImageInput.value = b.coverImage || '';
       form.content.value = b.content || '';
+      if (b.coverImage) showCoverPreview(b.coverImage);
     } catch (e) {
       showAlert(e.status === 404 ? 'Story not found.' : e.message);
     }
@@ -48,7 +78,7 @@
       title: form.title.value.trim(),
       category: form.category.value,
       tags: form.tags.value.trim(),
-      coverImage: form.coverImage.value.trim(),
+      coverImage: coverImageInput.value.trim(),
       content: form.content.value.trim(),
       status
     };

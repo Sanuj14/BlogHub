@@ -45,8 +45,19 @@
         </div>
 
         <div class="field">
-          <label for="coverImage">Cover image URL <span class="muted">(optional)</span></label>
-          <input class="input" id="coverImage" name="coverImage" type="url" placeholder="https://..." />
+          <label for="coverImage">Cover image <span class="muted">(optional)</span></label>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
+            <label for="coverFile" class="btn btn-ghost btn-sm" style="cursor:pointer">
+              <i class="fa-solid fa-image"></i> Choose from gallery
+            </label>
+            <input type="file" id="coverFile" accept="image/*" style="display:none" />
+            <span class="muted" style="font-size:.8rem">or paste a URL below</span>
+          </div>
+          <input class="input" id="coverImage" name="coverImage" placeholder="https://..." />
+          <div id="coverPreview" style="display:none;margin-top:12px;position:relative">
+            <img id="coverPreviewImg" style="width:100%;max-height:240px;object-fit:cover;border-radius:12px" />
+            <button type="button" id="coverRemove" class="btn btn-danger btn-sm" style="position:absolute;top:10px;right:10px"><i class="fa-solid fa-xmark"></i> Remove</button>
+          </div>
         </div>
 
         <div class="field">
