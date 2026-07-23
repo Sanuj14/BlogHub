@@ -87,7 +87,7 @@
           ? `<img src="${U.escape(u.avatar)}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.textContent='${U.escape(U.initials(u.name))}'"/>`
           : U.escape(U.initials(u.name));
         return `
-          <div class="feature reveal" style="display:flex;align-items:center;gap:14px;padding:18px">
+          <div class="feature reveal in" style="display:flex;align-items:center;gap:14px;padding:18px">
             <a href="/profile.html?id=${U.escape(u._id)}" style="width:52px;height:52px;border-radius:50%;overflow:hidden;flex:none;background:var(--yellow);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:900;font-size:1.1rem;border:var(--bd)">${avatar}</a>
             <a href="/profile.html?id=${U.escape(u._id)}" style="flex:1;min-width:0">
               <div style="font-family:var(--font-display);font-weight:900;font-size:.95rem;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${U.escape(u.name)}</div>
