@@ -61,6 +61,32 @@ router.get('/me/counts', requireAuth, async (req, res) => {
   }
 });
 
+// GET /api/users/search?q=... – find people by name or username
+router.get('/search', optionalAuth, async (req, res) => {
+  try {
+    const q = String(req.query.q || '').trim();
+    if (!q) return res.json({ success: true, users: [] });
+
+    // Escape regex metacharacters so a user's query is treated literally.
+    const safe = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const rx = new RegExp(safe, 'i');
+
+    const exclude = req.user ? [req.user.id] : [];
+    const users = await User.find({
+      _id: { $nin: exclude },
+      $or: [{ name: rx }, { username: rx }]
+    })
+      .select('name username avatar createdAt')
+      .sort({ createdAt: -1 })
+      .limit(12)
+      .lean();
+
+    res.json({ success: true, users });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
 // GET /api/users/:id – public profile: user info, follower/following counts,
 // whether the viewer follows them, and their published blogs.
 router.get('/:id', optionalAuth, async (req, res) => {
@@ -80,6 +106,7 @@ router.get('/:id', optionalAuth, async (req, res) => {
       : false;
 
     const blogs = await Blog.find({ author: req.params.id, status: 'published' })
+      .select('-content -comments')
       .populate('author', 'name username avatar')
       .sort({ createdAt: -1 })
       .lean({ virtuals: true });

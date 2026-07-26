@@ -51,5 +51,10 @@ BlogSchema.virtual('commentCount').get(function () {
 
 BlogSchema.statics.CATEGORIES = CATEGORIES;
 
+BlogSchema.index({ status: 1, createdAt: -1 });
+BlogSchema.index({ author: 1, createdAt: -1 });
+BlogSchema.index({ category: 1, status: 1, createdAt: -1 });
+BlogSchema.index({ status: 1, views: -1, createdAt: -1 });
+
 module.exports = mongoose.models.Blog || mongoose.model('Blog', BlogSchema);
 module.exports.CATEGORIES = CATEGORIES;

@@ -72,46 +72,73 @@
     if (cta) cta.style.display = 'none';
   }
 
+  function personCard(u) {
+    const now = Date.now();
+    const isNew = (now - new Date(u.createdAt).getTime()) < 30 * 24 * 60 * 60 * 1000;
+    const avatar = u.avatar
+      ? `<img src="${U.escape(u.avatar)}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.textContent='${U.escape(U.initials(u.name))}'"/>`
+      : U.escape(U.initials(u.name));
+    return `
+      <div class="feature reveal in" style="display:flex;align-items:center;gap:14px;padding:18px">
+        <a href="/profile.html?id=${U.escape(u._id)}" style="width:52px;height:52px;border-radius:50%;overflow:hidden;flex:none;background:var(--yellow);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:900;font-size:1.1rem;border:var(--bd)">${avatar}</a>
+        <a href="/profile.html?id=${U.escape(u._id)}" style="flex:1;min-width:0">
+          <div style="font-family:var(--font-display);font-weight:900;font-size:.95rem;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${U.escape(u.name)}</div>
+          <div class="muted" style="font-size:.78rem">@${U.escape(u.username)}${isNew ? ' &nbsp;<span style="background:var(--yellow);color:var(--ink);font-size:.68rem;padding:1px 6px;font-family:var(--font-mono);text-transform:uppercase;border:1px solid var(--ink)">New</span>' : ''}</div>
+        </a>
+        ${isAuthed()
+          ? `<button class="btn btn-ghost btn-sm follow-btn" data-id="${U.escape(u._id)}" style="flex:none"><i class="fa-solid fa-user-plus"></i></button>`
+          : `<a class="btn btn-ghost btn-sm" href="/register.html" style="flex:none"><i class="fa-solid fa-user-plus"></i></a>`}
+      </div>`;
+  }
+
+  function renderPeople(wrap, users, emptyMsg) {
+    if (!users || !users.length) {
+      wrap.innerHTML = `<div class="empty" style="grid-column:1/-1;padding:36px 20px"><div class="ic"><i class="fa-regular fa-user"></i></div><p>${U.escape(emptyMsg)}</p></div>`;
+      return;
+    }
+    wrap.innerHTML = users.map(personCard).join('');
+    wrap.querySelectorAll('.follow-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        btn.disabled = true;
+        try {
+          const res = await api(`/users/${btn.dataset.id}/follow`, { method: 'POST', auth: true });
+          btn.innerHTML = res.following
+            ? '<i class="fa-solid fa-user-check"></i>'
+            : '<i class="fa-solid fa-user-plus"></i>';
+        } catch (e) { U.toast(e.message, 'error'); }
+        btn.disabled = false;
+      });
+    });
+  }
+
   async function loadPeople() {
     const section = document.getElementById('peopleSection');
     const wrap = document.getElementById('people');
     if (!section || !wrap) return;
+    let suggested = [];
     try {
-      const { users } = await api('/users/suggestions');
-      if (!users || !users.length) return;
+      const { users } = await api('/users/suggestions', { auth: isAuthed() });
+      suggested = users || [];
       section.style.display = '';
-      const now = Date.now();
-      wrap.innerHTML = users.map(u => {
-        const isNew = (now - new Date(u.createdAt).getTime()) < 30 * 24 * 60 * 60 * 1000;
-        const avatar = u.avatar
-          ? `<img src="${U.escape(u.avatar)}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.textContent='${U.escape(U.initials(u.name))}'"/>`
-          : U.escape(U.initials(u.name));
-        return `
-          <div class="feature reveal in" style="display:flex;align-items:center;gap:14px;padding:18px">
-            <a href="/profile.html?id=${U.escape(u._id)}" style="width:52px;height:52px;border-radius:50%;overflow:hidden;flex:none;background:var(--yellow);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:900;font-size:1.1rem;border:var(--bd)">${avatar}</a>
-            <a href="/profile.html?id=${U.escape(u._id)}" style="flex:1;min-width:0">
-              <div style="font-family:var(--font-display);font-weight:900;font-size:.95rem;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${U.escape(u.name)}</div>
-              <div class="muted" style="font-size:.78rem">@${U.escape(u.username)}${isNew ? ' &nbsp;<span style="background:var(--yellow);color:var(--ink);font-size:.68rem;padding:1px 6px;font-family:var(--font-mono);text-transform:uppercase;border:1px solid var(--ink)">New</span>' : ''}</div>
-            </a>
-            ${isAuthed()
-              ? `<button class="btn btn-ghost btn-sm follow-btn" data-id="${U.escape(u._id)}" style="flex:none"><i class="fa-solid fa-user-plus"></i></button>`
-              : `<a class="btn btn-ghost btn-sm" href="/register.html" style="flex:none"><i class="fa-solid fa-user-plus"></i></a>`}
-          </div>`;
-      }).join('');
-
-      wrap.querySelectorAll('.follow-btn').forEach(btn => {
-        btn.addEventListener('click', async () => {
-          btn.disabled = true;
-          try {
-            const res = await api(`/users/${btn.dataset.id}/follow`, { method: 'POST', auth: true });
-            btn.innerHTML = res.following
-              ? '<i class="fa-solid fa-user-check"></i>'
-              : '<i class="fa-solid fa-user-plus"></i>';
-          } catch (e) { U.toast(e.message, 'error'); }
-          btn.disabled = false;
-        });
-      });
+      renderPeople(wrap, suggested, 'No new people to follow right now — try the search above.');
     } catch (_) { /* silently skip */ }
+
+    // Search people by name/username (debounced). Empty query → back to suggestions.
+    const search = document.getElementById('peopleSearch');
+    if (!search) return;
+    let timer = null;
+    search.addEventListener('input', () => {
+      clearTimeout(timer);
+      timer = setTimeout(async () => {
+        const q = search.value.trim();
+        if (!q) { renderPeople(wrap, suggested, 'No new people to follow right now — try the search above.'); return; }
+        try {
+          const { users } = await api(`/users/search?q=${encodeURIComponent(q)}`, { auth: isAuthed() });
+          section.style.display = '';
+          renderPeople(wrap, users, `No one found for “${q}”`);
+        } catch (_) { /* ignore */ }
+      }, 300);
+    });
   }
 
   renderCategories();

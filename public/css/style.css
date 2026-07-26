@@ -428,9 +428,16 @@ body.has-cursor textarea, body.has-cursor select, body.has-cursor .btn { cursor:
   .grid-3, .grid-4, .blog-grid { grid-template-columns: repeat(2, 1fr); }
   .footer-grid { grid-template-columns: 1fr; }
   .footer-grid > div { border-right: none; border-bottom: var(--border-w) solid rgba(255,255,255,0.18); }
+  .article h1 { font-size: clamp(1.6rem, 5vw, 2.8rem); }
+  .article-meta { font-size: 0.72rem; gap: 8px; }
+  .like-bar { flex-wrap: wrap; gap: 10px; }
+  .toolbar { flex-direction: column; align-items: stretch; gap: 14px; }
+  .toolbar > *:last-child { align-self: flex-start; }
 }
 @media (max-width: 640px) {
-  section { padding: 52px 0; }
+  section { padding: 40px 0; }
+  .section-sm { padding: 30px 0; }
+  .container { padding: 0 14px; }
   .nav-links { display: none; }
   .nav-toggle { display: block; }
   .nav.open .nav-links {
@@ -441,7 +448,27 @@ body.has-cursor textarea, body.has-cursor select, body.has-cursor .btn { cursor:
   .grid-3, .grid-4, .blog-grid, .grid-2 { grid-template-columns: 1fr; }
   .hero-stats { flex-wrap: wrap; }
   .hero-stats .stat { flex: 1 0 50%; border-bottom: var(--bd); }
-  .auth-card { padding: 26px 20px; }
+  .auth-card { padding: 26px 16px; }
+  .page { padding: 30px 0; }
+  .page-head h1 { font-size: clamp(1.8rem, 6vw, 2.6rem); }
+  .section-head h2 { font-size: clamp(1.4rem, 5vw, 2.2rem); }
+  .article-hero { aspect-ratio: 16 / 9; }
+  .article-body { font-size: 1rem; line-height: 1.7; }
+  .blog-card .body { padding: 14px; }
+  .blog-card h3 { font-size: 1rem; }
+  .blog-card .meta { flex-wrap: wrap; gap: 6px; }
+  .feature { padding: 20px; }
+  .feature h4 { font-size: 1rem; }
+  .btn { padding: 11px 16px; font-size: 0.76rem; }
+  .btn-sm { padding: 8px 12px; font-size: 0.7rem; }
+  .toast-wrap { left: 12px; right: 12px; bottom: 14px; }
+  .toast { min-width: 0; max-width: 100%; font-size: 0.74rem; }
+  .comment { gap: 10px; padding: 14px 0; }
+  .nav-right .nav-desktop-only { display: none; }
+  .cta-band { padding: 36px 18px; }
+  .cta-band h2 { font-size: clamp(1.4rem, 5vw, 2.2rem); }
+  .empty { padding: 40px 16px; }
+  .pagination button { min-width: 38px; height: 38px; font-size: 0.7rem; }
   /* touch: no custom cursor */
   .cursor, .cursor-dot { display: none; }
   body.has-cursor, body.has-cursor * { cursor: auto; }
@@ -500,4 +527,20 @@ body.lens-active .cursor, body.lens-active .cursor-dot { opacity: 0; }
   .np-text { columns: 1; }
   .np-flank { display: none; }
   .np-masthead { justify-content: center; }
+  .newspaper { padding: 16px 16px 0; }
+  .np-ad { margin: 0 -16px; padding: 14px 16px; }
+  .np-top { flex-direction: column; gap: 4px; }
+  .np-top .np-weather { text-align: left; max-width: 100%; }
+  .np-headline { font-size: clamp(1.8rem, 7vw, 3.6rem); }
+  .np-dek { font-size: clamp(0.85rem, 2vw, 1.1rem); }
+  .np-cta { flex-direction: column; }
+  .np-cta .btn { width: 100%; }
+  .np-ad { flex-direction: column; text-align: center; gap: 10px; }
+}
+
+/* ========================== DASHBOARD / PROFILE responsive =============== */
+@media (max-width: 640px) {
+  #profileCard { flex-direction: column; align-items: center; text-align: center; }
+  #profileCard .grid-2 { grid-template-columns: 1fr; }
+  #stats { grid-template-columns: repeat(2, 1fr) !important; }
 }

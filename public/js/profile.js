@@ -45,9 +45,12 @@
 
     const followBtn = data.isSelf
       ? `<a class="btn btn-ghost btn-sm" href="/dashboard.html"><i class="fa-solid fa-gauge"></i> Your dashboard</a>`
-      : `<button class="btn ${following ? 'btn-ghost' : 'btn-primary'} btn-sm" id="followBtn">
-          <i class="fa-solid ${following ? 'fa-user-check' : 'fa-user-plus'}"></i> <span>${following ? 'Following' : 'Follow'}</span>
-         </button>`;
+      : `<div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn ${following ? 'btn-ghost' : 'btn-primary'} btn-sm" id="followBtn">
+            <i class="fa-solid ${following ? 'fa-user-check' : 'fa-user-plus'}"></i> <span>${following ? 'Following' : 'Follow'}</span>
+          </button>
+          <a class="btn btn-ghost btn-sm" href="/chat.html?user=${U.escape(u._id)}"><i class="fa-solid fa-comment"></i> Message</a>
+        </div>`;
 
     root.innerHTML = `
       <div class="glass" style="padding:28px;margin-bottom:30px">

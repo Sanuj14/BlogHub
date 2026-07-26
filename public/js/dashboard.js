@@ -26,13 +26,25 @@
         preview.textContent = U.initials(u.name);
       }
     }
+    const bioDisplay = document.getElementById('profileBio');
+    if (bioDisplay) bioDisplay.textContent = u.bio || '';
+    if (bioDisplay) bioDisplay.style.display = u.bio ? '' : 'none';
     const editName = document.getElementById('editName');
     const editUsername = document.getElementById('editUsername');
+    const editBio = document.getElementById('editBio');
     if (editName) editName.value = u.name || '';
     if (editUsername) editUsername.value = u.username || '';
+    if (editBio) { editBio.value = u.bio || ''; updateBioCount(); }
   }
 
   renderProfileCard(user);
+
+  function updateBioCount() {
+    const el = document.getElementById('bioCount');
+    const bio = document.getElementById('editBio');
+    if (el && bio) el.textContent = bio.value.length;
+  }
+  document.getElementById('editBio')?.addEventListener('input', updateBioCount);
 
   document.getElementById('editProfileBtn')?.addEventListener('click', () => {
     document.getElementById('profileView').style.display = 'none';
@@ -47,11 +59,12 @@
   document.getElementById('saveProfileBtn')?.addEventListener('click', async () => {
     const name = document.getElementById('editName').value.trim();
     const username = document.getElementById('editUsername').value.trim();
+    const bio = (document.getElementById('editBio')?.value || '').trim();
     if (!name || !username) { U.toast('Name and username are required', 'error'); return; }
     const btn = document.getElementById('saveProfileBtn');
     btn.disabled = true;
     try {
-      const res = await api('/auth/profile', { method: 'PUT', auth: true, body: { name, username } });
+      const res = await api('/auth/profile', { method: 'PUT', auth: true, body: { name, username, bio } });
       setAuth(res.token, res.user);
       user = res.user;
       renderProfileCard(user);

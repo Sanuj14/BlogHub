@@ -51,7 +51,7 @@ router.post('/register', async (req, res) => {
     res.status(201).json({
       success: true,
       token: 'Bearer ' + token,
-      user: { id: user._id, name: user.name, username: user.username, email: user.email, role: user.role }
+      user: { id: user._id, name: user.name, username: user.username, email: user.email, avatar: user.avatar, bio: user.bio, role: user.role }
     });
   } catch (err) {
     if (err && err.code === 11000) {
@@ -88,7 +88,7 @@ router.post('/login', async (req, res) => {
     res.json({
       success: true,
       token: 'Bearer ' + token,
-      user: { id: user._id, name: user.name, username: user.username, email: user.email, role: user.role }
+      user: { id: user._id, name: user.name, username: user.username, email: user.email, avatar: user.avatar, bio: user.bio, role: user.role }
     });
   } catch (err) {
     console.error('Login error:', err);

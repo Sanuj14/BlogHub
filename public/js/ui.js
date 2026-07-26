@@ -161,6 +161,7 @@
                 </button>
                 <div class="dropdown" id="userDropdown">
                   <a href="/dashboard.html"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+                  <a href="/chat.html"><i class="fa-solid fa-comments"></i> Messages <span id="chatBadge" style="display:none;background:var(--red);color:#fff;font-family:var(--font-mono);font-size:.6rem;font-weight:700;min-width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;margin-left:4px"></span></a>
                   <a href="/create-blog.html"><i class="fa-solid fa-pen-nib"></i> Write</a>
                   <a href="#" id="logoutBtn"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log out</a>
                 </div>
@@ -189,6 +190,20 @@
       U.toast('Logged out', 'success');
       setTimeout(() => (window.location.href = '/index.html'), 450);
     });
+
+    if (authed) {
+      (async function checkUnread() {
+        try {
+          const { count } = await window.BlogHub.api('/chat/unread', { auth: true });
+          const badge = document.getElementById('chatBadge');
+          if (badge) {
+            if (count > 0) { badge.textContent = count; badge.style.display = 'inline-flex'; }
+            else { badge.style.display = 'none'; }
+          }
+        } catch (_) {}
+        setTimeout(checkUnread, 30000);
+      })();
+    }
   }
 
   /* ------------------------------- footer ------------------------------- */

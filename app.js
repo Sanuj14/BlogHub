@@ -3,11 +3,13 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
+const compression = require('compression');
 const connectDB = require('./config/db');
 
 const app = express();
 
 app.use(cors());
+app.use(compression());
 // Larger limit so client-compressed images (base64 data URLs) fit in the body.
 app.use(express.json({ limit: '6mb' }));
 app.use(express.urlencoded({ extended: true, limit: '6mb' }));
@@ -31,6 +33,7 @@ app.use('/api', async (req, res, next) => {
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/blogs', require('./routes/blogs'));
 app.use('/api/users', require('./routes/users'));
+app.use('/api/chat', require('./routes/chat'));
 
 app.get('/api/health', (req, res) => res.json({ success: true, status: 'ok' }));
 

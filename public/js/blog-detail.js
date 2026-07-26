@@ -74,6 +74,11 @@
             <i class="fa-${liked ? 'solid' : 'regular'} fa-heart"></i> <span id="likeCount">${likeCount}</span>
           </button>
           <span class="muted">${blog.commentCount || (blog.comments || []).length} comments</span>
+          <span style="margin-left:auto;display:flex;gap:8px">
+            <button class="btn btn-ghost btn-sm" id="shareCopy" title="Copy link"><i class="fa-solid fa-link"></i></button>
+            <button class="btn btn-ghost btn-sm" id="shareX" title="Share on X"><i class="fa-brands fa-x-twitter"></i></button>
+            <button class="btn btn-ghost btn-sm" id="shareWA" title="Share on WhatsApp"><i class="fa-brands fa-whatsapp"></i></button>
+          </span>
         </div>
 
         <section style="padding:0">
@@ -105,6 +110,18 @@
     document.getElementById('likeBtn').addEventListener('click', onLike);
     const del = document.getElementById('deleteBtn');
     if (del) del.addEventListener('click', onDelete);
+
+    const shareUrl = window.location.href;
+    const shareText = blog.title + ' — BlogHub';
+    document.getElementById('shareCopy').addEventListener('click', () => {
+      navigator.clipboard.writeText(shareUrl).then(() => U.toast('Link copied!', 'success')).catch(() => U.toast('Could not copy', 'error'));
+    });
+    document.getElementById('shareX').addEventListener('click', () => {
+      window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
+    });
+    document.getElementById('shareWA').addEventListener('click', () => {
+      window.open(`https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`, '_blank');
+    });
   }
 
   async function onLike() {

@@ -36,6 +36,7 @@
           <div id="profileView">
             <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:700" id="profileName"></div>
             <div class="muted" style="font-size:.85rem" id="profileUsername"></div>
+            <p class="muted" id="profileBio" style="font-size:.88rem;margin-top:6px"></p>
             <button class="btn btn-ghost btn-sm" id="editProfileBtn" style="margin-top:10px"><i class="fa-solid fa-pen"></i> Edit profile</button>
           </div>
           <div id="profileEdit" style="display:none">
@@ -54,6 +55,11 @@
                 <label style="font-size:.8rem">Username</label>
                 <input class="input" id="editUsername" placeholder="username" />
               </div>
+            </div>
+            <div class="field" style="margin:0 0 12px">
+              <label style="font-size:.8rem">Bio</label>
+              <textarea class="textarea" id="editBio" placeholder="A short bio about yourself..." maxlength="280" rows="3" style="min-height:70px"></textarea>
+              <div class="hint"><span id="bioCount">0</span>/280</div>
             </div>
             <div style="display:flex;gap:8px">
               <button class="btn btn-primary btn-sm" id="saveProfileBtn"><i class="fa-solid fa-check"></i> Save</button>

@@ -70,4 +70,6 @@ UserSchema.methods.comparePassword = function (candidate) {
   return bcrypt.compare(candidate, this.password);
 };
 
+UserSchema.index({ createdAt: -1 });
+
 module.exports = mongoose.models.User || mongoose.model('User', UserSchema);

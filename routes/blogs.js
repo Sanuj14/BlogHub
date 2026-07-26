@@ -53,6 +53,7 @@ router.get('/', async (req, res) => {
 
     const [blogs, total] = await Promise.all([
       Blog.find(query)
+        .select('-content -comments')
         .populate('author', 'name username avatar')
         .sort({ createdAt: -1 })
         .skip(skip)
@@ -79,6 +80,7 @@ router.get('/featured', async (req, res) => {
   try {
     const limit = Math.min(6, Math.max(1, parseInt(req.query.limit) || 4));
     const blogs = await Blog.find({ status: 'published' })
+      .select('-content -comments')
       .populate('author', 'name username avatar')
       .sort({ views: -1, createdAt: -1 })
       .limit(limit)
@@ -94,6 +96,7 @@ router.get('/featured', async (req, res) => {
 router.get('/mine', requireAuth, async (req, res) => {
   try {
     const blogs = await Blog.find({ author: req.user.id })
+      .select('-content -comments')
       .populate('author', 'name username avatar')
       .sort({ createdAt: -1 })
       .lean({ virtuals: true });
@@ -163,6 +166,7 @@ router.get('/:id', optionalAuth, async (req, res) => {
       _id: { $ne: blog._id },
       status: 'published'
     })
+      .select('-content -comments')
       .populate('author', 'name username avatar')
       .sort({ createdAt: -1 })
       .limit(3)
